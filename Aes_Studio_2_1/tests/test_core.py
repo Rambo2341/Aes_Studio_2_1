@@ -31,7 +31,11 @@ class FakeLLM(BaseHTTPRequestHandler):
         msgs = body['messages']; last = msgs[-1]['content']
         last = last if isinstance(last, str) else ' '.join(p.get('text', '') for p in last)
         system = msgs[0]['content'] if msgs and msgs[0]['role'] == 'system' else ''
-        if 'strict reviewer' in system:
+        if 'syllabus' in last:
+            reply = '["Blender interface", "Blender modifiers"]'
+        elif 'follow-up lessons' in last:
+            reply = '["Blender modifiers", "Blender geometry nodes"]'
+        elif 'strict reviewer' in system:
             reply = 'DONE: file exists per tool result'
         elif 'Study topic' in last:
             reply = '# Notes\nPythagoras: a^2+b^2=c^2 [1]'
@@ -200,6 +204,18 @@ class AesCoreTests(unittest.TestCase):
         self.assertIn('LoRA training is off', text)
         self.assertGreaterEqual(len(self.db.training_examples()) - before, 4)  # ... so it gets correction examples
         self.assertEqual(len(json.loads(self.db.setting('daily_history'))), 1)
+
+    def test_research_mode_expands_and_archives(self):
+        from aes.research import ResearchMode
+        self.tools._web_search = lambda q, max_results=8: f'1. {q}\n   https://example.org/{abs(hash(q))}'
+        self.tools._fetch_url = lambda u, max_chars=12000: 'Blender tutorial text'
+        self.tools._video_search = lambda q, n=3: '(no videos found)'
+        report = ResearchMode(self.db, self.agent, log=lambda m: None).run('Fake', 'Master Blender', hours=1, max_topics=3)
+        text = Path(report).read_text(encoding='utf-8')
+        self.assertIn('Lessons studied: 3/3', text)
+        self.assertIn('Blender geometry nodes', text)          # discovered by itself
+        self.assertEqual(text.count('Blender modifiers'), 1)   # no duplicate lessons
+        self.assertTrue(list((DATA / 'library' / 'raw').rglob('*.txt')))  # raw sources archived
 
     def test_html_to_text(self):
         self.assertEqual(html_to_text('<html><script>x()</script><p>Hi &amp; bye</p></html>'), 'Hi & bye')

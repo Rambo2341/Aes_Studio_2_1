@@ -132,7 +132,7 @@ class Database:
                 'workspace_root':'', 'hub_port':'8765', 'hub_token':secrets.token_urlsafe(32),
                 'hub_agent_enabled':'0', 'agent_max_steps':'30', 'autopilot_rounds':'6', 'ui_language':'auto',
                 'daily_units':'3', 'daily_max_goals':'12', 'daily_math_drills':'20', 'daily_code_drills':'6',
-                'daily_lora_enabled':'0', 'daily_lora_base':'Qwen/Qwen2.5-Coder-7B-Instruct', 'daily_lora_args':'--qlora --max-seq 2048', 'daily_lora_min_examples':'300', 'daily_history':'[]',
+                'daily_lora_enabled':'0', 'daily_lora_base':'Qwen/Qwen2.5-Coder-7B-Instruct', 'daily_lora_args':'--qlora --max-seq 2048', 'daily_lora_min_examples':'300', 'research_show_browser':'0', 'daily_history':'[]',
                 'auto_evolve':'1', 'auto_evolve_min_feedback':'8', 'theme':'midnight', 'permission_mode':'ask',
                 'blender_path':'', 'unity_path':'', 'rojo_path':'rojo', 'comfyui_url':'http://127.0.0.1:8188'
             }
@@ -180,7 +180,8 @@ class Database:
                 'look_at_screen':'ask','mouse_move':'ask','mouse_drag':'ask','mouse_scroll':'ask','key_press':'ask','screen_info':'allow',
                 'open_url':'ask','clipboard_get':'ask','clipboard_set':'ask','run_python':'ask','learn_topic':'ask','recall':'allow',
                 'goal_add':'ask','knowledge_add':'ask','self_status':'allow',
-                'read_document':'ask','library_import':'ask','video_transcript':'ask','learn_from_video':'ask'
+                'read_document':'ask','library_import':'ask','video_transcript':'ask','learn_from_video':'ask',
+                'video_search':'ask','research':'ask'
             }
             for name,mode in policies.items():
                 self.conn.execute("INSERT OR IGNORE INTO tool_policies(tool_name,mode,updated_at) VALUES(?,?,?)",(name,mode,now))

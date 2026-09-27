@@ -511,7 +511,7 @@ class AesStudio(tk.Tk):
         self.goal_title=tk.StringVar();self.goal_kind=tk.StringVar(value='task')
         self.label_field(inn,'GOAL',self.entry(inn,self.goal_title))
         tk.Label(inn,text='DEFINITION OF DONE / DETAIL',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');self.goal_detail=self.text(inn,7);self.goal_detail.pack(fill='both',expand=True)
-        row=tk.Frame(inn,bg=C.CARD);row.pack(fill='x',pady=8);ttk.Combobox(row,textvariable=self.goal_kind,state='readonly',values=['task','learn','video'],width=8).pack(side='left');self.button(row,'Queue goal',self.queue_goal,accent=True).pack(side='left',padx=7);self.button(row,'Delete',self.delete_goal,danger=True).pack(side='right')
+        row=tk.Frame(inn,bg=C.CARD);row.pack(fill='x',pady=8);ttk.Combobox(row,textvariable=self.goal_kind,state='readonly',values=['task','learn','video','research'],width=9).pack(side='left');self.button(row,'Queue goal',self.queue_goal,accent=True).pack(side='left',padx=7);self.button(row,'Delete',self.delete_goal,danger=True).pack(side='right')
         act=tk.Frame(inn,bg=C.CARD);act.pack(fill='x',pady=4);self.autopilot_btn=self.button(act,'☾  Run Autopilot now',self.run_autopilot,accent=True);self.autopilot_btn.pack(side='left');self.button(act,'Stop',self.stop_autopilot,danger=True).pack(side='left',padx=7);self.button(act,'Reports',lambda:self.open_folder(DATA/'reports')).pack(side='right');self.button(act,'Load training plan',self.load_curriculum).pack(side='right',padx=7);self.button(act,'Daily training',self.run_daily).pack(side='right')
         self.goal_view=self.text(inn,8);self.goal_view.pack(fill='both',expand=True,pady=(8,0));self._goals=[]
     def refresh_autopilot(self):

@@ -25,7 +25,7 @@ for _k in ROLE_TOOLSETS:
     ROLE_TOOLSETS[_k]|=_COMMON
 for _k in ('code','blender','unity','roblox','research'):
     ROLE_TOOLSETS[_k]|={'run_python'}
-ROLE_TOOLSETS['research']|={'knowledge_add','learn_topic','learn_from_video','video_transcript','read_document','library_import'}
+ROLE_TOOLSETS['research']|={'knowledge_add','learn_topic','video_search','learn_from_video','video_transcript','read_document','library_import'}
 for _k in ('explore','plan','code','math'):
     ROLE_TOOLSETS[_k]|={'read_document','video_transcript'}
 
@@ -187,6 +187,13 @@ For complex work, the main Aes agent is the manager: coordinate specialists, com
                 self.tools.permission.authorize('learn_from_video','network',f"learn_from_video({args.get('source','')})",args)
                 return self.learn_from_video(model_name,str(args.get('source','')),str(args.get('topic','')))
             except Exception as e: return f'ERROR: {e}'
+        if name=='research':
+            try:
+                self.tools.permission.authorize('research','network',f"research({args.get('prompt','')})",args)
+                from .research import ResearchMode
+                p=ResearchMode(self.db,self,log=lambda m:None).run(model_name,str(args.get('prompt','')),float(args.get('hours',1) or 1),args.get('max_topics'))
+                return f'Research finished. Report: {p}\n'+Path(p).read_text(encoding='utf-8')[:4000]
+            except Exception as e: return f'ERROR: {e}'
         if name=='learn_topic':
             if allowed is not None and name not in allowed: return "ERROR: Tool 'learn_topic' is not allowed in this agent role"
             try:
@@ -225,13 +232,27 @@ For complex work, the main Aes agent is the manager: coordinate specialists, com
         except Exception as e: return f'ERROR: web search failed: {e}'
         urls=list(dict.fromkeys(list(extra_urls or [])+[l.strip() for l in hits.splitlines() if l.strip().startswith('http')]))[:2+2*depth+len(extra_urls or [])]
         sources=[]
+        show=self.db.setting('research_show_browser','0')=='1'
         for u in urls:
-            try: sources.append((u,self.tools._fetch_url(u,max_chars=12000)))
+            if show:
+                try: self.tools._open_url(u,'chrome')   # let the owner watch Aes read
+                except Exception: pass
+            try:
+                text=self.tools._fetch_url(u,max_chars=12000); sources.append((u,text)); self._archive(topic,u,text)
             except Exception: continue
         if not sources: return f'Could not read any sources for "{topic}". Search output:\n{hits[:2000]}'
         corpus='\n\n'.join(f'### SOURCE {i+1}: {u}\n{t}' for i,(u,t) in enumerate(sources))
         did,notes=self._study_notes(model,topic,corpus,[u for u,_ in sources])
         return f'Learned "{topic}" from {len(sources)} sources -> knowledge doc #{did}.\n\n{notes[:4000]}'
+
+    def _archive(self,topic,url,text):
+        """Keep every raw source on disk (the big-data library that grows over time)."""
+        import hashlib
+        try:
+            d=DATA/'library'/'raw'/time.strftime('%Y-%m'); d.mkdir(parents=True,exist_ok=True)
+            slug=re.sub(r'[^\w\-]+','_',topic)[:60]; h=hashlib.sha1(url.encode()).hexdigest()[:10]
+            (d/f'{slug}_{h}.txt').write_text(f'URL: {url}\nTOPIC: {topic}\nFETCHED: {time.strftime("%Y-%m-%d %H:%M")}\n\n{text}',encoding='utf-8')
+        except Exception: pass
 
     def _study_notes(self,model,topic,corpus,refs):
         prompt=(f"Study topic: {topic}\n\nWrite structured study notes (Markdown) for Aes's private knowledge library:\n"
@@ -248,6 +269,7 @@ For complex work, the main Aes agent is the manager: coordinate specialists, com
         model=self._model(model_name)
         try: transcript=self.tools._video_transcript(source,max_chars=60000)
         except Exception as e: return f'ERROR: {e}'
+        self._archive(topic or 'video',source,transcript)
         did,notes=self._study_notes(model,topic or f'video {source}',f'### SOURCE 1 (video transcript): {source}\n{transcript}',[source])
         return f'Learned from video -> knowledge doc #{did}.\n\n{notes[:4000]}'
 

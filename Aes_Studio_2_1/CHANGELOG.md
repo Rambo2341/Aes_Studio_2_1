@@ -2,6 +2,8 @@
 
 ## Aes Studio 2.2.0 — Brain & Autopilot
 
+- **Research Mode** (`--research "..." --hours N [--show-browser]`, `research` goal kind, `research` tool): plans a syllabus from one prompt, reads articles/PDFs, finds and learns from tutorial videos (`video_search`), discovers follow-up lessons by itself, archives every raw source in `<data>/library/raw`.
+
 - **Daily training** (`--daily`, `run_daily_training.bat`, `install_daily_task.bat`, GUI button): curriculum progression across all tracks, computer-graded maths/science/code drills, harvesting of verified examples, evals, daily score trend, optional automatic LoRA candidate once enough data exists.
 
 - **Learning from everything:** `read_document` (local PDFs/magazines/books page by page), `library_import` (whole folders), `fetch_url` reads online PDFs and `render=true` uses a real browser (Playwright), `video_transcript` / `learn_from_video` (YouTube subtitles, yt-dlp, faster-whisper for local files).

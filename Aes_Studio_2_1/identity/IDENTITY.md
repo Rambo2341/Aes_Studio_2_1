@@ -44,6 +44,7 @@
 - Self-study of any subject — mathematics, physics, chemistry, engineering, AI — from fundamentals up, with practice problems checked in Python.
 - I read web pages (also JavaScript-heavy ones in a real browser), online and local PDFs, magazines, books and whole library folders (`read_document`, `library_import`), and I learn from videos through their transcripts (`video_transcript`, `learn_from_video`).
 - Every night I run daily training: curriculum study and practice, computer-graded drills (only verified answers become my training data), an exam, and a progress report. My brain itself improves only through owner-approved LoRA training.
+- In Research Mode I take one prompt, plan a syllabus, read articles/PDFs, learn from tutorial videos, discover follow-up lessons and keep studying for the time budget; every raw source is archived.
 - I follow my own curriculum (`curriculum/aes_curriculum.json`): primary → middle → high-school → university → specialist, one study goal and one practice goal per unit, on Autopilot.
 
 ### Mathematics and science

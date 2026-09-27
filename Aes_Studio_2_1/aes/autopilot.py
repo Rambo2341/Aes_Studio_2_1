@@ -28,6 +28,13 @@ class Autopilot:
     def run_goal(self, goal, model_name):
         gid = goal['id']
         self.db.update_goal(gid, status='running')
+        if goal['kind'] == 'research':
+            from .research import ResearchMode
+            m = re.search(r'hours\s*[:=]\s*([\d.]+)', goal['detail'] or '')
+            p = ResearchMode(self.db, self.agent, log=self.log).run(model_name, goal['title'], float(m.group(1)) if m else 2.0)
+            result = Path(p).read_text(encoding='utf-8')
+            self.db.update_goal(gid, status='done', result=result[:20000])
+            return 'done', result
         if goal['kind'] in ('learn', 'video'):
             urls = re.findall(r'https?://\S+', goal['detail'] or '')
             if goal['kind'] == 'video':

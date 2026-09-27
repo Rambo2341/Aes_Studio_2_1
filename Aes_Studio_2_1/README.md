@@ -8,6 +8,7 @@ Aes Studio is a Windows-first **private local AI agent workstation**. It is desi
 - **Sees and controls the PC:** screenshots the model can see, mouse, keyboard/hotkeys, clipboard, Chrome.
 - **Autopilot:** queue goals, pick Auto/Full access, press *Run Autopilot* (or `run_autopilot.bat`), sleep, read the morning report in `<data>\reports`.
 - **Learns by itself:** `learn_topic` studies a subject from several web sources and stores cited notes; `recall` searches what it already knows.
+- **Research Mode:** `python main.py --research "Master Blender" --hours 8 --show-browser` — teaches itself a whole field from one prompt.
 - **Daily training:** `install_daily_task.bat` → every night: study, computer-graded drills, exam, progress report, and automatic brain training once enough verified data exists.
 - **Training plan:** `docs/TRAINING_PLAN.md` + a 41-unit curriculum (Autopilot → *Load training plan*). Reads PDFs/magazines/folders and learns from videos.
 - **Its own memory drive:** rename `aes_data_location.example.txt` to `aes_data_location.txt` and write e.g. `D:\AesBrain`.
