@@ -33,7 +33,7 @@ class AesStudio(tk.Tk):
     NAV=[
       ('chat','Chat','✦'),('projects','Projects','▦'),('models','Models','◈'),('knowledge','Knowledge','⌁'),
       ('memory','Memory','◎'),('skills','Skills','◆'),('tools','Tools & Permissions','⌘'),('evals','Evals','✓'),
-      ('training','Training Lab','△'),('updates','Updates','↻'),('settings','Settings','⚙')]
+      ('autopilot','Autopilot','☾'),('training','Training Lab','△'),('updates','Updates','↻'),('settings','Settings','⚙')]
 
     def __init__(self,db_path):
         super().__init__(); self.title(f'Aes Studio {APP_VERSION}'); self.configure(bg=C.BG)
@@ -53,7 +53,7 @@ class AesStudio(tk.Tk):
             pass
         self.db=Database(db_path); self.runtimes=RuntimeManager(); self.permission=PermissionManager(self.db,self.ask_tool_permission)
         self.tools=ToolRegistry(WORKSPACE,self.db,self.permission); self.agent=AgentEngine(self.db,self.runtimes,self.tools)
-        self.kb=KnowledgeBase(self.db); self.evals=EvalRunner(self.db,self.runtimes); self.training=TrainingLab(self.db,EXPORTS); self.evolver=EvolutionManager(self.db,self.runtimes,self.evals,self.training); self.hub=AesHub(self.db,self.runtimes)
+        self.kb=KnowledgeBase(self.db); self.evals=EvalRunner(self.db,self.runtimes); self.training=TrainingLab(self.db,EXPORTS); self.evolver=EvolutionManager(self.db,self.runtimes,self.evals,self.training); self.hub=AesHub(self.db,self.runtimes,self.agent)
         self.current_cid=None; self.last_mid=None; self._sending=False; self.pages={}; self.nav_buttons={}; self.current_page='chat'; self._ttk(); self._shell(); self._build_pages(); self.refresh_all(); self.open_initial_chat(); self.show_page(self.db.setting('startup_page','chat'))
 
     def _ttk(self):
@@ -99,7 +99,7 @@ class AesStudio(tk.Tk):
         self.content=tk.Frame(self,bg=C.BG); self.content.pack(side='left',fill='both',expand=True)
     def _build_pages(self):
         for key,_,_ in self.NAV:self.pages[key]=tk.Frame(self.content,bg=C.BG)
-        self.build_chat(self.pages['chat']); self.build_projects(self.pages['projects']); self.build_models(self.pages['models']); self.build_knowledge(self.pages['knowledge']); self.build_memory(self.pages['memory']); self.build_skills(self.pages['skills']); self.build_tools(self.pages['tools']); self.build_evals(self.pages['evals']); self.build_training(self.pages['training']); self.build_updates(self.pages['updates']); self.build_settings(self.pages['settings'])
+        self.build_chat(self.pages['chat']); self.build_projects(self.pages['projects']); self.build_models(self.pages['models']); self.build_knowledge(self.pages['knowledge']); self.build_memory(self.pages['memory']); self.build_skills(self.pages['skills']); self.build_tools(self.pages['tools']); self.build_evals(self.pages['evals']); self.build_autopilot(self.pages['autopilot']); self.build_training(self.pages['training']); self.build_updates(self.pages['updates']); self.build_settings(self.pages['settings'])
 
     def header(self,parent,title,sub,right=None):
         row=tk.Frame(parent,bg=C.BG); row.pack(fill='x',padx=28,pady=(24,14)); left=tk.Frame(row,bg=C.BG); left.pack(side='left',fill='x',expand=True)
@@ -313,31 +313,35 @@ class AesStudio(tk.Tk):
 
     # MODELS
     def build_models(self,page):
-        self.header(page,'Models','Aes runs local models. Import a GGUF file; no OpenAI or Claude API is required.')
+        self.header(page,'Models','Choose the brain: local GGUF, Ollama / LM Studio / DeepSeek (openai_compat) or Claude (anthropic). Keys may be written as env:VARIABLE.')
         body=tk.Frame(page,bg=C.BG);body.pack(fill='both',expand=True,padx=28,pady=(0,25));left=Card(body,width=320);left.pack(side='left',fill='y',padx=(0,13));left.pack_propagate(False);self.model_list=tk.Listbox(left,bg=C.CARD,fg=C.TEXT,selectbackground=C.CARD3,bd=0,highlightthickness=0);self.model_list.pack(fill='both',expand=True,padx=9,pady=10);self.model_list.bind('<<ListboxSelect>>',self.load_model);rr=tk.Frame(left,bg=C.CARD);rr.pack(fill='x',padx=9,pady=9);self.button(rr,'+ New',self.new_model).pack(side='left');self.button(rr,'Delete',self.delete_model,danger=True).pack(side='right')
-        form=Card(body);form.pack(side='left',fill='both',expand=True);inn=tk.Frame(form,bg=C.CARD);inn.pack(fill='both',expand=True,padx=19,pady=16);self.mvars={k:tk.StringVar() for k in ['name','runtime','path','ctx','gpu','temp','max']};self.label_field(inn,'AES MODEL PROFILE',self.entry(inn,self.mvars['name']));row=tk.Frame(inn,bg=C.CARD);row.pack(fill='x',pady=5);lf=tk.Frame(row,bg=C.CARD);lf.pack(side='left',fill='x',expand=True,padx=(0,6));tk.Label(lf,text='RUNTIME',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');ttk.Combobox(lf,textvariable=self.mvars['runtime'],state='readonly',values=['demo','llama_cpp']).pack(fill='x');rf=tk.Frame(row,bg=C.CARD);rf.pack(side='left',fill='x',expand=True);tk.Label(rf,text='CONTEXT TOKENS',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');self.entry(rf,self.mvars['ctx']).pack(fill='x',ipady=6)
-        pr=tk.Frame(inn,bg=C.CARD);pr.pack(fill='x',pady=6);tk.Label(pr,text='LOCAL GGUF MODEL',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');r2=tk.Frame(pr,bg=C.CARD);r2.pack(fill='x');self.entry(r2,self.mvars['path']).pack(side='left',fill='x',expand=True,ipady=6);self.button(r2,'Browse .gguf',self.browse_model).pack(side='right',padx=(7,0)); nums=tk.Frame(inn,bg=C.CARD);nums.pack(fill='x',pady=5)
+        form=Card(body);form.pack(side='left',fill='both',expand=True);inn=tk.Frame(form,bg=C.CARD);inn.pack(fill='both',expand=True,padx=19,pady=16);self.mvars={k:tk.StringVar() for k in ['name','runtime','path','ctx','gpu','temp','max','endpoint','api_key']};self.label_field(inn,'AES MODEL PROFILE',self.entry(inn,self.mvars['name']));row=tk.Frame(inn,bg=C.CARD);row.pack(fill='x',pady=5);lf=tk.Frame(row,bg=C.CARD);lf.pack(side='left',fill='x',expand=True,padx=(0,6));tk.Label(lf,text='RUNTIME',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');ttk.Combobox(lf,textvariable=self.mvars['runtime'],state='readonly',values=['demo','llama_cpp','openai_compat','anthropic']).pack(fill='x');rf=tk.Frame(row,bg=C.CARD);rf.pack(side='left',fill='x',expand=True);tk.Label(rf,text='CONTEXT TOKENS',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');self.entry(rf,self.mvars['ctx']).pack(fill='x',ipady=6)
+        pr=tk.Frame(inn,bg=C.CARD);pr.pack(fill='x',pady=6);tk.Label(pr,text='GGUF FILE (llama_cpp)  /  MODEL ID (openai_compat, anthropic)',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');r2=tk.Frame(pr,bg=C.CARD);r2.pack(fill='x');self.entry(r2,self.mvars['path']).pack(side='left',fill='x',expand=True,ipady=6);self.button(r2,'Browse .gguf',self.browse_model).pack(side='right',padx=(7,0))
+        er=tk.Frame(inn,bg=C.CARD);er.pack(fill='x',pady=5)
+        for i,(lab,k,show) in enumerate([('ENDPOINT URL (openai_compat)','endpoint',None),('API KEY  (or env:NAME)','api_key','•')]):
+            f=tk.Frame(er,bg=C.CARD);f.pack(side='left',fill='x',expand=True,padx=(0 if i==0 else 5,0));tk.Label(f,text=lab,bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');self.entry(f,self.mvars[k],show=show).pack(fill='x',ipady=6)
+        nums=tk.Frame(inn,bg=C.CARD);nums.pack(fill='x',pady=5)
         for i,(lab,k) in enumerate([('GPU LAYERS','gpu'),('TEMPERATURE','temp'),('MAX OUTPUT','max')]):
             f=tk.Frame(nums,bg=C.CARD);f.pack(side='left',fill='x',expand=True,padx=(0 if i==0 else 5,0));tk.Label(f,text=lab,bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');self.entry(f,self.mvars[k]).pack(fill='x',ipady=6)
-        tk.Label(inn,text='SYSTEM / IDENTITY PROMPT',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w',pady=(10,4));self.model_prompt=self.text(inn,12);self.model_prompt.pack(fill='both',expand=True);act=tk.Frame(inn,bg=C.CARD);act.pack(fill='x',pady=(12,0));self.button(act,'Save',self.save_model,accent=True).pack(side='left');self.button(act,'Test local model',self.test_model).pack(side='left',padx=7);self.button(act,'Set default',self.set_default_model).pack(side='right');self._model_selected=None
+        tk.Label(inn,text='SYSTEM / IDENTITY PROMPT',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w',pady=(10,4));self.model_prompt=self.text(inn,12);self.model_prompt.pack(fill='both',expand=True);act=tk.Frame(inn,bg=C.CARD);act.pack(fill='x',pady=(12,0));self.button(act,'Save',self.save_model,accent=True).pack(side='left');self.button(act,'Test model',self.test_model).pack(side='left',padx=7);self.button(act,'Set default',self.set_default_model).pack(side='right');self._model_selected=None
     def refresh_models(self):
         if not hasattr(self,'model_list'):return
-        self._models=self.db.models();self.model_list.delete(0,'end');[self.model_list.insert('end','  '+r['name']+('  • local' if r['runtime']=='llama_cpp' else '  • demo')) for r in self._models];names=[r['name'] for r in self._models];self.chat_model_box.configure(values=names);default=self.db.setting('default_model','Aes 2.1 Local');self.chat_model.set(default if default in names else (names[0] if names else ''));self.side_model.configure(text='Model: '+(self.chat_model.get() or '—'))
-    def new_model(self):self._model_selected=None;[self.mvars[k].set(v) for k,v in {'name':'Aes 2.1 Local','runtime':'llama_cpp','path':'','ctx':'16384','gpu':'-1','temp':'0.2','max':'2400'}.items()];self.model_prompt.delete('1.0','end')
+        self._models=self.db.models();self.model_list.delete(0,'end');[self.model_list.insert('end','  '+r['name']+'  • '+{'llama_cpp':'local','openai_compat':'server','anthropic':'claude'}.get(r['runtime'],'demo')) for r in self._models];names=[r['name'] for r in self._models];self.chat_model_box.configure(values=names);default=self.db.setting('default_model','Aes 2.1 Local');self.chat_model.set(default if default in names else (names[0] if names else ''));self.side_model.configure(text='Model: '+(self.chat_model.get() or '—'))
+    def new_model(self):self._model_selected=None;[self.mvars[k].set(v) for k,v in {'name':'Aes Custom','runtime':'openai_compat','path':'','ctx':'32768','gpu':'-1','temp':'0.2','max':'4096','endpoint':'http://127.0.0.1:11434/v1','api_key':''}.items()];self.model_prompt.delete('1.0','end')
     def load_model(self,_=None):
         s=self.model_list.curselection()
         if not s:return
-        r=self._models[s[0]];self._model_selected=r['name'];vals={'name':r['name'],'runtime':r['runtime'],'path':r['model_path'],'ctx':r['context_size'],'gpu':r['gpu_layers'],'temp':r['temperature'],'max':r['max_tokens']};[self.mvars[k].set(str(v)) for k,v in vals.items()];self.model_prompt.delete('1.0','end');self.model_prompt.insert('1.0',r['system_prompt'])
+        r=self._models[s[0]];self._model_selected=r['name'];vals={'name':r['name'],'runtime':r['runtime'],'path':r['model_path'],'ctx':r['context_size'],'gpu':r['gpu_layers'],'temp':r['temperature'],'max':r['max_tokens'],'endpoint':r['endpoint'],'api_key':r['api_key']};[self.mvars[k].set(str(v)) for k,v in vals.items()];self.model_prompt.delete('1.0','end');self.model_prompt.insert('1.0',r['system_prompt'])
     def browse_model(self):
         p=filedialog.askopenfilename(parent=self,filetypes=[('GGUF models','*.gguf'),('All files','*.*')]);
         if p:self.mvars['path'].set(p)
     def save_model(self):
-        try:self.db.save_model(self.mvars['name'].get().strip(),self.mvars['runtime'].get(),self.mvars['path'].get().strip(),int(self.mvars['ctx'].get()),int(self.mvars['gpu'].get()),float(self.mvars['temp'].get()),int(self.mvars['max'].get()),self.model_prompt.get('1.0','end').strip());self.runtimes.unload(self._model_selected);self._model_selected=self.mvars['name'].get().strip();self.refresh_models()
+        try:self.db.save_model(self.mvars['name'].get().strip(),self.mvars['runtime'].get(),self.mvars['path'].get().strip(),int(self.mvars['ctx'].get()),int(self.mvars['gpu'].get()),float(self.mvars['temp'].get()),int(self.mvars['max'].get()),self.model_prompt.get('1.0','end').strip(),1,self.mvars['endpoint'].get().strip(),self.mvars['api_key'].get().strip());self.runtimes.unload(self._model_selected);self._model_selected=self.mvars['name'].get().strip();self.refresh_models()
         except Exception as e:messagebox.showerror('Model',str(e))
     def delete_model(self):
         if self._model_selected and messagebox.askyesno('Delete','Delete this model profile? The GGUF file is not deleted.',parent=self):self.db.delete_model(self._model_selected);self.runtimes.unload(self._model_selected);self._model_selected=None;self.refresh_models()
     def test_model(self):
-        try:r=self.db.model(self.mvars['name'].get().strip()) or self.db.model(self._model_selected);ans=self.runtimes.complete(r,[{'role':'user','content':'Reply exactly: Aes local model ready.'}]);messagebox.showinfo('Model test',ans[:1000])
+        try:r=self.db.model(self.mvars['name'].get().strip()) or self.db.model(self._model_selected);ans=self.runtimes.complete(r,[{'role':'user','content':'Reply exactly: Aes model ready.'}]);messagebox.showinfo('Model test',ans[:1000])
         except Exception as e:messagebox.showerror('Model test',str(e))
     def set_default_model(self):
         n=self.mvars['name'].get().strip()
@@ -481,21 +485,68 @@ class AesStudio(tk.Tk):
     # SETTINGS
     def build_settings(self,page):
         self.header(page,'Settings','Owner configuration for local engines, training, external desktop tools and Aes Hub.')
-        body=Card(page);body.pack(fill='both',expand=True,padx=28,pady=(0,25));inn=tk.Frame(body,bg=C.CARD);inn.pack(fill='both',expand=True,padx=20,pady=18);self.svars={k:tk.StringVar() for k in ['blender_path','unity_path','rojo_path','comfyui_url','hub_port','hub_token','auto_evolve','memory_enabled']}
-        for label,key in [('Blender executable','blender_path'),('Unity executable','unity_path'),('Rojo executable / command','rojo_path'),('Local ComfyUI URL','comfyui_url'),('Aes Hub port','hub_port'),('Aes Hub token','hub_token')]:self.label_field(inn,label.upper(),self.entry(inn,self.svars[key],show='•' if key=='hub_token' else None))
-        checks=tk.Frame(inn,bg=C.CARD);checks.pack(fill='x',pady=10);self.mem_bool=tk.BooleanVar();self.evolve_bool=tk.BooleanVar();ttk.Checkbutton(checks,text='Enable long-term memory',variable=self.mem_bool).pack(side='left');ttk.Checkbutton(checks,text='Auto-stage improvement candidates from feedback',variable=self.evolve_bool).pack(side='left',padx=25);act=tk.Frame(inn,bg=C.CARD);act.pack(fill='x',pady=12);self.button(act,'Save settings',self.save_settings,accent=True).pack(side='left');self.button(act,'Start local Aes Hub',self.start_hub).pack(side='left',padx=7);self.button(act,'Stop Hub',self.stop_hub).pack(side='left');tk.Label(inn,text=f'Data folder: {DATA}\nAes Hub binds to 127.0.0.1 by default. Use a proper authenticated HTTPS reverse proxy before exposing it publicly.',bg=C.CARD,fg=C.MUTED,justify='left').pack(anchor='w',pady=(15,0))
+        body=Card(page);body.pack(fill='both',expand=True,padx=28,pady=(0,25));inn=tk.Frame(body,bg=C.CARD);inn.pack(fill='both',expand=True,padx=20,pady=18);self.svars={k:tk.StringVar() for k in ['blender_path','unity_path','rojo_path','comfyui_url','hub_port','hub_token','auto_evolve','memory_enabled','agent_max_steps','autopilot_rounds']}
+        for label,key in [('Blender executable','blender_path'),('Unity executable','unity_path'),('Rojo executable / command','rojo_path'),('Local ComfyUI URL','comfyui_url'),('Aes Hub port','hub_port'),('Aes Hub token (your owner API key)','hub_token'),('Max agent steps per request','agent_max_steps'),('Autopilot review rounds per goal','autopilot_rounds')]:self.label_field(inn,label.upper(),self.entry(inn,self.svars[key],show='•' if key=='hub_token' else None))
+        checks=tk.Frame(inn,bg=C.CARD);checks.pack(fill='x',pady=10);self.mem_bool=tk.BooleanVar();self.evolve_bool=tk.BooleanVar();self.hub_agent_bool=tk.BooleanVar();ttk.Checkbutton(checks,text='Enable long-term memory',variable=self.mem_bool).pack(side='left');ttk.Checkbutton(checks,text='Auto-stage improvement candidates from feedback',variable=self.evolve_bool).pack(side='left',padx=25);ttk.Checkbutton(checks,text='Allow remote agent control via Hub (/v1/agent)',variable=self.hub_agent_bool).pack(side='left');act=tk.Frame(inn,bg=C.CARD);act.pack(fill='x',pady=12);self.button(act,'Save settings',self.save_settings,accent=True).pack(side='left');self.button(act,'Start local Aes Hub',self.start_hub).pack(side='left',padx=7);self.button(act,'Stop Hub',self.stop_hub).pack(side='left');tk.Label(inn,text=f'Data folder: {DATA}\nAes Hub binds to 127.0.0.1 by default. Use a proper authenticated HTTPS reverse proxy before exposing it publicly.',bg=C.CARD,fg=C.MUTED,justify='left').pack(anchor='w',pady=(15,0))
     def refresh_settings(self):
         if not hasattr(self,'svars'):return
-        for k in ['blender_path','unity_path','rojo_path','comfyui_url','hub_port','hub_token']:self.svars[k].set(self.db.setting(k,''))
-        self.mem_bool.set(self.db.setting('memory_enabled','1')=='1');self.evolve_bool.set(self.db.setting('auto_evolve','1')=='1')
+        for k in ['blender_path','unity_path','rojo_path','comfyui_url','hub_port','hub_token','agent_max_steps','autopilot_rounds']:self.svars[k].set(self.db.setting(k,''))
+        self.mem_bool.set(self.db.setting('memory_enabled','1')=='1');self.evolve_bool.set(self.db.setting('auto_evolve','1')=='1');self.hub_agent_bool.set(self.db.setting('hub_agent_enabled','0')=='1')
     def save_settings(self):
-        for k in ['blender_path','unity_path','rojo_path','comfyui_url','hub_port','hub_token']:self.db.set_setting(k,self.svars[k].get())
-        self.db.set_setting('memory_enabled','1' if self.mem_bool.get() else '0');self.db.set_setting('auto_evolve','1' if self.evolve_bool.get() else '0');self.side_status.configure(text='●  Settings saved',fg=C.GOOD)
+        for k in ['blender_path','unity_path','rojo_path','comfyui_url','hub_port','hub_token','agent_max_steps','autopilot_rounds']:self.db.set_setting(k,self.svars[k].get())
+        self.db.set_setting('memory_enabled','1' if self.mem_bool.get() else '0');self.db.set_setting('auto_evolve','1' if self.evolve_bool.get() else '0');self.db.set_setting('hub_agent_enabled','1' if self.hub_agent_bool.get() else '0');self.side_status.configure(text='●  Settings saved',fg=C.GOOD)
     def start_hub(self):
         self.save_settings()
         try:self.hub.start('127.0.0.1',int(self.db.setting('hub_port','8765')));messagebox.showinfo('Aes Hub',f"Running locally on 127.0.0.1:{self.db.setting('hub_port','8765')}")
         except Exception as e:messagebox.showerror('Aes Hub',str(e))
     def stop_hub(self):self.hub.stop();messagebox.showinfo('Aes Hub','Stop requested.')
+
+    # AUTOPILOT
+    def build_autopilot(self,page):
+        self.header(page,'Autopilot','Queue goals, set trust to Auto/Full, press Run — Aes works while you sleep and writes a morning report. Create a STOP file in the data folder to halt.')
+        body=tk.Frame(page,bg=C.BG);body.pack(fill='both',expand=True,padx=28,pady=(0,25))
+        left=Card(body);left.pack(side='left',fill='both',expand=True,padx=(0,13))
+        self.goal_list=tk.Listbox(left,bg=C.CARD,fg=C.TEXT,selectbackground=C.CARD3,bd=0,highlightthickness=0);self.goal_list.pack(fill='both',expand=True,padx=9,pady=10);self.goal_list.bind('<<ListboxSelect>>',self.show_goal)
+        right=Card(body,width=460);right.pack(side='left',fill='both');right.pack_propagate(False);inn=tk.Frame(right,bg=C.CARD);inn.pack(fill='both',expand=True,padx=16,pady=14)
+        self.goal_title=tk.StringVar();self.goal_kind=tk.StringVar(value='task')
+        self.label_field(inn,'GOAL',self.entry(inn,self.goal_title))
+        tk.Label(inn,text='DEFINITION OF DONE / DETAIL',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');self.goal_detail=self.text(inn,7);self.goal_detail.pack(fill='both',expand=True)
+        row=tk.Frame(inn,bg=C.CARD);row.pack(fill='x',pady=8);ttk.Combobox(row,textvariable=self.goal_kind,state='readonly',values=['task','learn'],width=8).pack(side='left');self.button(row,'Queue goal',self.queue_goal,accent=True).pack(side='left',padx=7);self.button(row,'Delete',self.delete_goal,danger=True).pack(side='right')
+        act=tk.Frame(inn,bg=C.CARD);act.pack(fill='x',pady=4);self.autopilot_btn=self.button(act,'☾  Run Autopilot now',self.run_autopilot,accent=True);self.autopilot_btn.pack(side='left');self.button(act,'Stop',self.stop_autopilot,danger=True).pack(side='left',padx=7);self.button(act,'Reports',lambda:self.open_folder(DATA/'reports')).pack(side='right')
+        self.goal_view=self.text(inn,8);self.goal_view.pack(fill='both',expand=True,pady=(8,0));self._goals=[]
+    def refresh_autopilot(self):
+        if not hasattr(self,'goal_list'):return
+        self._goals=self.db.goals();self.goal_list.delete(0,'end')
+        for g in self._goals:self.goal_list.insert('end',f"  #{g['id']}  [{g['status']}]  ({g['kind']})  {g['title']}")
+    def show_goal(self,_=None):
+        s=self.goal_list.curselection()
+        if not s:return
+        g=self._goals[s[0]];self.goal_view.delete('1.0','end');self.goal_view.insert('1.0',f"{g['title']}\n\n{g['detail']}\n\n--- result ---\n{g['result']}")
+    def queue_goal(self):
+        t=self.goal_title.get().strip()
+        if not t:return
+        self.db.add_goal(t,self.goal_detail.get('1.0','end').strip(),self.goal_kind.get());self.goal_title.set('');self.goal_detail.delete('1.0','end');self.refresh_autopilot()
+    def delete_goal(self):
+        s=self.goal_list.curselection()
+        if s:self.db.execute('DELETE FROM goals WHERE id=?',(self._goals[s[0]]['id'],));self.refresh_autopilot()
+    def run_autopilot(self):
+        from .autopilot import Autopilot,STOP_FILE
+        if getattr(self,'_autopilot_running',False):return
+        if self.db.setting('permission_mode','ask')=='ask' and not messagebox.askyesno('Autopilot','Trust mode is Ask: every risky action will wait for your click. Continue anyway? (Choose Auto or Full access in Chat for unattended runs.)',parent=self):return
+        try:STOP_FILE.unlink()
+        except Exception:pass
+        self.db.set_setting('autopilot_stop','0');self._autopilot_running=True;self.autopilot_btn.configure(text='Autopilot running…',state='disabled');model=self.chat_model.get().strip()
+        def work():
+            err=None;report=None
+            try:report=Autopilot(self.db,self.agent,log=lambda m:None).run_all(model)
+            except Exception as e:err=e
+            self.after(0,lambda:self._autopilot_done(report,err))
+        threading.Thread(target=work,daemon=True).start()
+    def _autopilot_done(self,report,err):
+        self._autopilot_running=False;self.autopilot_btn.configure(text='☾  Run Autopilot now',state='normal');self.refresh_autopilot()
+        if err:messagebox.showerror('Autopilot',str(err))
+        elif report:self.side_status.configure(text='●  Autopilot report ready',fg=C.GOOD)
+    def stop_autopilot(self):self.db.set_setting('autopilot_stop','1');self.side_status.configure(text='●  Autopilot stopping after current step',fg=C.WARN)
 
     def ask_tool_permission(self,req):
         box={'ok':False};ev=threading.Event()
@@ -509,7 +560,7 @@ class AesStudio(tk.Tk):
             else:webbrowser.open('file://'+p)
         except Exception as e:messagebox.showerror('Open folder',str(e))
     def refresh_all(self):
-        for k in ['chat','projects','models','knowledge','memory','skills','tools','evals','training','updates','settings']:
+        for k in ['chat','projects','models','knowledge','memory','skills','tools','evals','autopilot','training','updates','settings']:
             try:getattr(self,f'refresh_{k}')()
             except Exception:pass
         self.refresh_project_choices()

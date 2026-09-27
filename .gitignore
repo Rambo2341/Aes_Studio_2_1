@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+aes_data/
+aes_data_location.txt
+dist/
+build/
+*.gguf

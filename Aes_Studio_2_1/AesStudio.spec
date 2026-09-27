@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_submodules
 hidden=[]
-for pkg in ['fastapi','uvicorn','pydantic','docx','pypdf']:
+for pkg in ['fastapi','uvicorn','pydantic','docx','pypdf','anthropic','pyautogui','pyperclip']:
     try:hidden += collect_submodules(pkg)
     except Exception:pass
 

@@ -2,7 +2,7 @@
   "name": "Roblox Creator",
   "category": "Development",
   "description": "Luau, Rojo, server-authoritative game systems and project builds.",
-  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Use validated remotes, server authority, modular Luau, DataStore safety and exploit-resistant designs.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Use validated remotes, server authority, modular Luau (--!strict), DataStore safety (UpdateAsync, retries, session locking), exploit-resistant designs, ProfileStore-style data patterns, CollectionService tags, and performance budgets for mobile. Structure projects for Rojo (src/server, src/client, src/shared) and build with roblox_build. Never trust the client for damage, currency or inventory.",
   "triggers": [
     "roblox",
     "luau",

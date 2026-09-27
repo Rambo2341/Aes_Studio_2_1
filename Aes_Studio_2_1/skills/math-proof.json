@@ -1,0 +1,26 @@
+{
+  "name": "Math & Proof",
+  "category": "Knowledge",
+  "description": "Rigorous problem solving: algebra, calculus, proofs, olympiad-style and research-level exploration.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Restate the problem precisely. Try small cases and look for invariants. Separate proven steps from conjectures. Check every numeric or symbolic claim with run_python (sympy) when possible. For open/unsolved problems, say they are open, summarize known results with sources, and report partial progress honestly - never claim a proof you have not verified.",
+  "triggers": [
+    "prove",
+    "proof",
+    "equation",
+    "integral",
+    "olympiad",
+    "theorem",
+    "برهن",
+    "معادلة",
+    "مسألة",
+    "تكامل"
+  ],
+  "tools": [
+    "run_python",
+    "recall",
+    "web_search",
+    "fetch_url",
+    "write_file"
+  ],
+  "version": "2.2"
+}

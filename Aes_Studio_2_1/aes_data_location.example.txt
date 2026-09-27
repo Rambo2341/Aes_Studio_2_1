@@ -1,0 +1,5 @@
+# Give Aes its own drive for memory, knowledge, conversations and reports.
+# 1) Rename this file to  aes_data_location.txt  (same folder as main.py / AesStudio.exe)
+# 2) Put the folder path on the first non-comment line, for example:
+D:\AesBrain
+# Or set the environment variable AES_DATA_DIR instead.

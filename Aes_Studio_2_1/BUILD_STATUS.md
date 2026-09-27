@@ -1,3 +1,22 @@
+# Aes Studio 2.2 Build Status
+
+Validated headlessly on Linux / Python 3.11 (`tests/test_core.py`, 12 tests, all passing):
+
+- Agent tool loop against an OpenAI-compatible server (real HTTP) — PASS
+- Step-budget status report (no raw tool call as final answer) — PASS
+- Ask mode without UI refuses write tools — PASS
+- Destructive command block — PASS
+- run_python, remember/recall — PASS
+- learn_topic -> knowledge + memory — PASS
+- Autopilot goal -> reviewer DONE -> report file — PASS
+- Screenshot marker -> OpenAI image_url / Claude image block conversion — PASS
+- Hub token auth, /v1/goals, /v1/agent gate — PASS
+- Upgrade of a 2.1 database (new columns, token rotation, identity upgrade with .bak) — PASS (manual)
+
+Not verified here: the Tk GUI (no display/tkinter in the build container — syntax-checked only), real mouse/keyboard/screenshot on Windows, live Claude/Ollama/DeepSeek calls (need keys / local servers).
+
+---
+
 # Aes Studio 2.1 Build Status
 
 Validated in the build environment:

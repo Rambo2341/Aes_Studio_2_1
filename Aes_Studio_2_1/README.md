@@ -1,6 +1,32 @@
-# Aes Studio 2.1 — Agent OS
+# Aes Studio 2.2 — Brain & Autopilot
 
-Aes Studio is a Windows-first **private local AI agent workstation**. It is designed to run an owner-selected local GGUF model, combine it with identity files, memory, private knowledge, specialist skills and computer tools, and improve through feedback/evals without depending on ChatGPT or Claude at runtime.
+Aes Studio is a Windows-first **private local AI agent workstation**. It is designed to run an owner-selected local GGUF model, combine it with identity files, memory, private knowledge, specialist skills and computer tools, and improve through feedback/evals fully local, or with an optional cloud brain (Claude, DeepSeek, …) that the owner chooses.
+
+## Aes 2.2 — what's new
+
+- **Pick a real brain** (Models page): Claude (`anthropic`), Ollama / LM Studio / DeepSeek / any OpenAI-compatible server (`openai_compat`), or a local GGUF (`llama_cpp`). Aes's intelligence is mostly the brain; Aes adds identity, memory, skills, tools, permissions and the agent loop.
+- **Sees and controls the PC:** screenshots the model can see, mouse, keyboard/hotkeys, clipboard, Chrome.
+- **Autopilot:** queue goals, pick Auto/Full access, press *Run Autopilot* (or `run_autopilot.bat`), sleep, read the morning report in `<data>\reports`.
+- **Learns by itself:** `learn_topic` studies a subject from several web sources and stores cited notes; `recall` searches what it already knows.
+- **Its own memory drive:** rename `aes_data_location.example.txt` to `aes_data_location.txt` and write e.g. `D:\AesBrain`.
+- **Owner API:** `python main.py --api` → `POST /v1/goals`, `POST /v1/agent` (enable in Settings) with `Authorization: Bearer <hub_token>`.
+
+### Quick start (brain)
+
+| Brain | Profile | What to do |
+|---|---|---|
+| Claude | `Aes 2.2 Claude` | `setx ANTHROPIC_API_KEY sk-ant-...` then restart Aes |
+| Ollama (free, local) | `Aes 2.2 Ollama` | install Ollama, `ollama pull qwen2.5-coder:32b` (or any model; for screen vision use a vision model, e.g. `qwen2.5vl`) |
+| LM Studio (free, local) | `Aes 2.2 LM Studio` | start the local server, put the model id in the profile |
+| DeepSeek | `Aes 2.2 DeepSeek` | `setx DEEPSEEK_API_KEY ...` |
+
+Select the profile in Chat → **Set default**. Then try: `who are you?` / `مين أنت؟`
+
+### تشغيل سريع (عربي)
+1. شغّل `run_windows.bat`.
+2. من صفحة **Models** اختر العقل (Claude أو Ollama أو DeepSeek) واضغط **Test model** ثم **Set default**.
+3. للشغل وأنت نايم: صفحة **Autopilot** → اكتب الهدف و"متى يعتبر خلص" → اختر **Auto** أو **Full access** → **Run Autopilot**. التقرير يطلع في مجلد `reports`.
+4. لإيقاف فوري: زر **Stop** أو سوّ ملف اسمه `STOP` في مجلد بيانات Aes، أو ودّ الماوس لزاوية الشاشة.
 
 ## Aes 2.1 highlights
 
@@ -27,6 +53,17 @@ The project seeds:
 - `Aes 2.1 Local` — the recommended orchestration profile
 
 Aes Studio does **not** ship a third-party checkpoint. Import a legally usable GGUF model yourself.
+
+## Headless / terminal
+
+```
+python main.py --chat                 # talk to Aes in the terminal
+python main.py --goal "Make a Roblox obby with 10 stages" --detail "Rojo project builds; checkpoints saved in DataStore"
+python main.py --learn "Linear algebra fundamentals"
+python main.py --autopilot --mode auto
+python main.py --status
+python -m unittest discover -s tests -v
+```
 
 ## Run on Windows
 
