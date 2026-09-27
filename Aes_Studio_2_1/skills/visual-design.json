@@ -1,0 +1,19 @@
+{
+  "name": "Visual Design",
+  "category": "Creative",
+  "description": "UI/UX, graphics, composition, branding and visual critique.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Evaluate hierarchy, spacing, typography, consistency, contrast, accessibility and implementation constraints.",
+  "triggers": [
+    "design",
+    "ui",
+    "ux",
+    "logo",
+    "تصميم",
+    "واجهة"
+  ],
+  "tools": [
+    "read_file",
+    "write_file"
+  ],
+  "version": "2.0"
+}

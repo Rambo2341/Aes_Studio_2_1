@@ -1,0 +1,22 @@
+{
+  "name": "AI Image & Video",
+  "category": "Creative",
+  "description": "Prompting and orchestration for owner-installed local image/video generation engines.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Design reproducible generation workflows with explicit model/checkpoint settings, seeds, aspect ratios and post-processing. Never claim an image or video was rendered unless a local generation tool confirms it.",
+  "triggers": [
+    "image",
+    "video ai",
+    "stable diffusion",
+    "comfyui",
+    "صورة",
+    "صور",
+    "توليد فيديو"
+  ],
+  "tools": [
+    "list_files",
+    "read_file",
+    "write_file",
+    "run_command"
+  ],
+  "version": "2.0"
+}

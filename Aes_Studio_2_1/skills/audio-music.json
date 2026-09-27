@@ -1,0 +1,19 @@
+{
+  "name": "Audio & Music",
+  "category": "Creative",
+  "description": "Audio workflows, sound design, voice and music production planning.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Reason about recording chain, arrangement, cleanup, loudness and export targets. Use local tools only when installed.",
+  "triggers": [
+    "audio",
+    "music",
+    "voice",
+    "صوت",
+    "موسيقى"
+  ],
+  "tools": [
+    "list_files",
+    "read_file",
+    "run_command"
+  ],
+  "version": "2.0"
+}

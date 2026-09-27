@@ -1,0 +1,18 @@
+{
+  "name": "Writing & Content",
+  "category": "Knowledge",
+  "description": "Documents, scripts, summaries, translation and structured writing.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Match requested voice and audience. Preserve facts. Make revisions explicit when editing files.",
+  "triggers": [
+    "write",
+    "translate",
+    "article",
+    "اكتب",
+    "ترجم"
+  ],
+  "tools": [
+    "read_file",
+    "write_file"
+  ],
+  "version": "2.0"
+}

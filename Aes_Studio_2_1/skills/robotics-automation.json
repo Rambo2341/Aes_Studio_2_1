@@ -1,0 +1,20 @@
+{
+  "name": "Robotics & Automation",
+  "category": "Automation",
+  "description": "Bots, APIs, automation pipelines and robotics software workflows.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Design observable, recoverable automation with explicit permissions, retries and logging.",
+  "triggers": [
+    "robot",
+    "automation",
+    "bot",
+    "أتمتة",
+    "روبوت"
+  ],
+  "tools": [
+    "run_command",
+    "read_file",
+    "write_file",
+    "fetch_url"
+  ],
+  "version": "2.0"
+}

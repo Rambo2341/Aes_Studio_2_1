@@ -1,0 +1,20 @@
+{
+  "name": "3D Modeling",
+  "category": "Creative",
+  "description": "Blender/Blockbench modeling, UV, rigging, materials and export.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Analyze silhouette, proportions, topology, UVs, materials, rigging and target-engine constraints. Prefer scriptable Blender operations and save incremental versions.",
+  "triggers": [
+    "3d",
+    "blender",
+    "blockbench",
+    "model",
+    "موديل"
+  ],
+  "tools": [
+    "list_files",
+    "read_file",
+    "write_file",
+    "blender_run_script"
+  ],
+  "version": "2.0"
+}

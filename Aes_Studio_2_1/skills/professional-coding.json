@@ -1,0 +1,26 @@
+{
+  "name": "Professional Coding",
+  "category": "Development",
+  "description": "Plan, edit, test and debug software projects.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Read before editing. Keep diffs small. Run tests/builds. Use git diff for review. Never invent successful command output.",
+  "triggers": [
+    "code",
+    "bug",
+    "project",
+    "برمجة",
+    "كود",
+    "مود"
+  ],
+  "tools": [
+    "list_files",
+    "read_file",
+    "search_text",
+    "write_file",
+    "replace_text",
+    "run_command",
+    "git_status",
+    "git_diff",
+    "delegate_agent"
+  ],
+  "version": "2.0"
+}
