@@ -5,3 +5,4 @@ peft>=0.13
 trl>=0.12
 accelerate>=1.0
 safetensors>=0.4
+bitsandbytes>=0.43  # for --qlora (4-bit); supports Windows + NVIDIA

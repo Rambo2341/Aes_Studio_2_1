@@ -132,7 +132,7 @@ class Database:
                 'workspace_root':'', 'hub_port':'8765', 'hub_token':secrets.token_urlsafe(32),
                 'hub_agent_enabled':'0', 'agent_max_steps':'30', 'autopilot_rounds':'6', 'ui_language':'auto',
                 'daily_units':'3', 'daily_max_goals':'12', 'daily_math_drills':'20', 'daily_code_drills':'6',
-                'daily_lora_enabled':'0', 'daily_lora_base':'', 'daily_lora_min_examples':'300', 'daily_history':'[]',
+                'daily_lora_enabled':'0', 'daily_lora_base':'Qwen/Qwen2.5-Coder-7B-Instruct', 'daily_lora_args':'--qlora --max-seq 2048', 'daily_lora_min_examples':'300', 'daily_history':'[]',
                 'auto_evolve':'1', 'auto_evolve_min_feedback':'8', 'theme':'midnight', 'permission_mode':'ask',
                 'blender_path':'', 'unity_path':'', 'rojo_path':'rojo', 'comfyui_url':'http://127.0.0.1:8188'
             }
@@ -154,6 +154,8 @@ class Database:
                  DEFAULT_SYSTEM + "\nYou are Aes 2.2 running on a Claude brain. Plan, act with tools, verify, then report."),
                 ('Aes 2.2 Ollama','openai_compat','qwen2.5-coder:32b','http://127.0.0.1:11434/v1','',32768,0,0.2,4096,
                  DEFAULT_SYSTEM + "\nYou are Aes 2.2 running on a local Ollama model."),
+                ('Aes 2.2 RTX 3070','openai_compat','qwen2.5vl:7b','http://127.0.0.1:11434/v1','',16384,0,0.2,4096,
+                 DEFAULT_SYSTEM + "\nYou are Aes 2.2 running locally on an 8 GB GPU with a vision model, so you can see screenshots."),
                 ('Aes 2.2 LM Studio','openai_compat','local-model','http://127.0.0.1:1234/v1','',32768,0,0.2,4096,
                  DEFAULT_SYSTEM + "\nYou are Aes 2.2 running on a local LM Studio model."),
                 ('Aes 2.2 DeepSeek','openai_compat','deepseek-chat','https://api.deepseek.com/v1','env:DEEPSEEK_API_KEY',65536,0,0.3,8000,

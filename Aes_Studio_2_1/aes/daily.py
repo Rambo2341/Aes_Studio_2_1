@@ -82,7 +82,7 @@ class DailyTrainer:
         script = BUNDLE_ROOT / 'trainer' / 'train_lora.py'
         py = sys.executable if not getattr(sys, 'frozen', False) else 'python'
         self.log(f'Training LoRA on {n} examples -> {out} (this can take hours)')
-        cp = subprocess.run([py, str(script), '--base', base, '--dataset', str(dataset), '--output', str(out), '--epochs', '2'],
+        cp = subprocess.run([py, str(script), '--base', base, '--dataset', str(dataset), '--output', str(out), '--epochs', '2'] + self.db.setting('daily_lora_args', '--qlora --max-seq 2048').split(),
                             capture_output=True, text=True, encoding='utf-8', errors='replace')
         if cp.returncode != 0:
             return f'LoRA training failed (exit {cp.returncode}):\n{(cp.stdout + cp.stderr)[-3000:]}'
