@@ -48,6 +48,16 @@ class KnowledgeBase:
         self.db.log('knowledge_import',f'{p.name}: {len(text)} chars',True)
         return did,len(text)
 
+    def import_text(self,title,text,source=''):
+        text=str(text or '')
+        if not text.strip(): raise RuntimeError('Nothing to store.')
+        cur=self.db.execute('INSERT INTO knowledge_docs(name,source_path,mime,chars,created_at) VALUES(?,?,?,?,strftime("%s","now"))',(str(title)[:200],str(source)[:1000],'text/markdown',len(text)))
+        did=cur.lastrowid
+        for i,ch in enumerate(chunks(text)):
+            self.db.execute('INSERT INTO knowledge_chunks(doc_id,chunk_index,content) VALUES(?,?,?)',(did,i,ch))
+        self.db.log('knowledge_learn',f'{title}: {len(text)} chars from {source or "agent"}',True)
+        return did,len(text)
+
     def search(self,query,limit=6):
         query=(query or '').strip()
         if not query: return []

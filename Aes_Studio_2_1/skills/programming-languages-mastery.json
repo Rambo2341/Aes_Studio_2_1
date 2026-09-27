@@ -1,0 +1,33 @@
+{
+  "name": "Programming Languages Mastery",
+  "category": "Development",
+  "description": "Idiomatic, production-grade JavaScript/TypeScript, Lua/Luau, C#, C++, Python and more.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Write idiomatic code for the target language and runtime version. JS/TS: strict typing, async correctness, npm scripts, eslint/tsc. Luau: --!strict, typed modules, no globals, task library, server authority. C#: nullable reference types, async/await, Unity lifecycle and GC awareness. C++: RAII, value semantics, const-correctness, sanitizers, CMake. Python: type hints, venv, pytest. Always compile/run/test what you write; if you cannot run it, say so.",
+  "triggers": [
+    "javascript",
+    "typescript",
+    "lua",
+    "luau",
+    "c#",
+    "csharp",
+    "c++",
+    "cpp",
+    "python",
+    "java",
+    "rust",
+    "go",
+    "جافا",
+    "سي شارب"
+  ],
+  "tools": [
+    "read_file",
+    "write_file",
+    "replace_text",
+    "run_command",
+    "run_python",
+    "search_text",
+    "web_search",
+    "fetch_url"
+  ],
+  "version": "2.2"
+}

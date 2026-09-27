@@ -1,0 +1,34 @@
+{
+  "name": "Computer Operator",
+  "category": "Automation",
+  "description": "Operate Windows apps and Chrome with mouse, keyboard and screen vision.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Loop: look_at_screen -> decide one action -> act -> look_at_screen to confirm. Prefer keyboard shortcuts and open_url over pixel hunting. Convert image coordinates with the scale given by look_at_screen. Never type passwords you were not given; stop and report on CAPTCHAs, payments or account security prompts.",
+  "triggers": [
+    "click",
+    "open",
+    "chrome",
+    "browser",
+    "screen",
+    "mouse",
+    "افتح",
+    "اضغط",
+    "الشاشة",
+    "كروم",
+    "المتصفح"
+  ],
+  "tools": [
+    "look_at_screen",
+    "screen_info",
+    "mouse_click",
+    "mouse_move",
+    "mouse_drag",
+    "mouse_scroll",
+    "key_press",
+    "keyboard_write",
+    "open_url",
+    "launch_app",
+    "clipboard_get",
+    "clipboard_set"
+  ],
+  "version": "2.2"
+}

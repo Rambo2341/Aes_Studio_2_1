@@ -1,0 +1,8 @@
+# Optional extras for Aes self-learning
+# Real-browser reading of JavaScript-heavy pages:  then run  python -m playwright install chromium
+playwright>=1.45
+# Transcribe local videos/audio (and online videos without subtitles)
+faster-whisper>=1.0
+# Maths/science verification in run_python
+sympy>=1.12
+numpy>=1.26

@@ -1,0 +1,27 @@
+{
+  "name": "Self-Learning Curriculum",
+  "category": "Knowledge",
+  "description": "Learn any subject from fundamentals to expert level and store it.",
+  "instructions": "Work step by step, verify results, preserve user files, and state limitations clearly. Before studying, recall what is already known. Build a curriculum: prerequisites -> core -> practice -> projects -> advanced. Use learn_topic for each unit, verify with practice problems (run_python for math/science), then remember one lesson per unit and queue follow-up learn goals for weak areas.",
+  "triggers": [
+    "learn",
+    "study",
+    "teach yourself",
+    "curriculum",
+    "تعلم",
+    "ادرس",
+    "اتعلم",
+    "منهج"
+  ],
+  "tools": [
+    "learn_topic",
+    "recall",
+    "knowledge_add",
+    "remember",
+    "goal_add",
+    "run_python",
+    "web_search",
+    "fetch_url"
+  ],
+  "version": "2.2"
+}

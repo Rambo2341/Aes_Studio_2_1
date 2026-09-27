@@ -1,0 +1,424 @@
+{
+ "name": "Aes training curriculum",
+ "version": "1.0",
+ "levels": [
+  "primary",
+  "middle",
+  "high-school",
+  "university",
+  "specialist"
+ ],
+ "units": [
+  {
+   "id": "computer-01",
+   "track": "computer",
+   "level": "primary",
+   "topic": "Windows keyboard shortcuts, File Explorer and Task Manager basics",
+   "sources": [],
+   "practice": "Open File Explorer with win+e, create folder Aes_Practice on the Desktop, take a screenshot proving it exists.",
+   "done": "look_at_screen shows the folder on the Desktop."
+  },
+  {
+   "id": "computer-02",
+   "track": "computer",
+   "level": "primary",
+   "topic": "Google Chrome basics: tabs, address bar, search, downloads, reading mode",
+   "sources": [],
+   "practice": "Open Chrome, search \"Luau type checking\", open the first official result, summarise it into Aes_Practice/luau_notes.md.",
+   "done": "The notes file exists and cites the page URL."
+  },
+  {
+   "id": "computer-03",
+   "track": "computer",
+   "level": "middle",
+   "topic": "Reading long web articles and PDFs efficiently (skimming, sections, citations)",
+   "sources": [],
+   "practice": "Find one freely available PDF paper about transformers, read it with fetch_url/read_document and write a 1-page summary.",
+   "done": "Summary with section references saved to Aes_Practice."
+  },
+  {
+   "id": "computer-04",
+   "track": "computer",
+   "level": "middle",
+   "topic": "Learning from video lectures: transcripts, timestamps, note-taking",
+   "sources": [],
+   "practice": "Pick a YouTube lecture on recursion, run learn_from_video, then write 3 practice problems and solve them with run_python.",
+   "done": "Knowledge doc exists; the 3 solutions run with exit=0."
+  },
+  {
+   "id": "programming-01",
+   "track": "programming",
+   "level": "primary",
+   "topic": "Programming fundamentals: variables, conditions, loops, functions, data structures",
+   "sources": [
+    "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting"
+   ],
+   "practice": "Write the same FizzBuzz + word-count program in Python and JavaScript and run both.",
+   "done": "Both programs run with identical output."
+  },
+  {
+   "id": "programming-02",
+   "track": "programming",
+   "level": "middle",
+   "topic": "Git and GitHub workflow: commits, branches, diffs, merge conflicts",
+   "sources": [],
+   "practice": "Create a git repo in Aes_Practice/git_lab, make 3 commits, create and merge a branch.",
+   "done": "git log shows the merge commit."
+  },
+  {
+   "id": "programming-03",
+   "track": "programming",
+   "level": "middle",
+   "topic": "Modern JavaScript: ES modules, async/await, promises, closures, DOM",
+   "sources": [
+    "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide"
+   ],
+   "practice": "Build a small to-do web page (HTML+JS, localStorage) in Aes_Practice/todo.",
+   "done": "Page opens in Chrome; adding a task survives reload (checked with look_at_screen)."
+  },
+  {
+   "id": "programming-04",
+   "track": "programming",
+   "level": "high-school",
+   "topic": "TypeScript: types, generics, narrowing, strict mode, tsc",
+   "sources": [
+    "https://www.typescriptlang.org/docs/handbook/intro.html"
+   ],
+   "practice": "Convert the to-do app to TypeScript with strict mode.",
+   "done": "tsc --strict passes with zero errors."
+  },
+  {
+   "id": "programming-05",
+   "track": "programming",
+   "level": "middle",
+   "topic": "Lua 5.1 and Luau: tables, metatables, closures, type annotations, --!strict",
+   "sources": [
+    "https://luau.org/getting-started",
+    "https://luau.org/typecheck"
+   ],
+   "practice": "Write a typed Luau module for an inventory (add/remove/count) with tests you can run in Luau CLI if installed.",
+   "done": "Module + tests written; tests run if luau is installed, otherwise stated."
+  },
+  {
+   "id": "programming-06",
+   "track": "programming",
+   "level": "high-school",
+   "topic": "C#: types, classes, LINQ, async/await, nullable reference types, .NET CLI",
+   "sources": [
+    "https://learn.microsoft.com/en-us/dotnet/csharp/tour-of-csharp/"
+   ],
+   "practice": "Create a .NET console app that parses a CSV and prints statistics.",
+   "done": "dotnet run prints correct statistics."
+  },
+  {
+   "id": "programming-07",
+   "track": "programming",
+   "level": "university",
+   "topic": "Modern C++ (17/20): RAII, smart pointers, value semantics, STL, CMake",
+   "sources": [
+    "https://en.cppreference.com/w/cpp",
+    "https://cmake.org/cmake/help/latest/guide/tutorial/index.html"
+   ],
+   "practice": "Implement a small matrix class with tests, built with CMake.",
+   "done": "Build succeeds and tests pass."
+  },
+  {
+   "id": "programming-08",
+   "track": "programming",
+   "level": "university",
+   "topic": "Algorithms and data structures: complexity, sorting, graphs, dynamic programming",
+   "sources": [],
+   "practice": "Implement Dijkstra and a DP knapsack in Python with randomized tests against brute force.",
+   "done": "All randomized tests pass."
+  },
+  {
+   "id": "programming-09",
+   "track": "programming",
+   "level": "specialist",
+   "topic": "Software architecture, testing strategy, debugging and code review",
+   "sources": [],
+   "practice": "Review the Aes Studio source itself and write docs/aes_self_review.md with 5 concrete improvement proposals.",
+   "done": "Review file exists with file:line references."
+  },
+  {
+   "id": "roblox-01",
+   "track": "roblox",
+   "level": "middle",
+   "topic": "Roblox Studio basics: Explorer, Properties, Parts, Scripts vs LocalScripts, services",
+   "sources": [
+    "https://create.roblox.com/docs/tutorials",
+    "https://rojo.space/docs/v7/"
+   ],
+   "practice": "Write the folder structure and default.project.json for a Rojo project in Aes_Practice/roblox_obby.",
+   "done": "roblox_build produces build.rbxlx (if Rojo is installed)."
+  },
+  {
+   "id": "roblox-02",
+   "track": "roblox",
+   "level": "high-school",
+   "topic": "Client-server model, RemoteEvents/RemoteFunctions and server-side validation",
+   "sources": [],
+   "practice": "Add a coin pickup system where the server validates every pickup.",
+   "done": "Server script rejects pickups farther than a max distance; explained in README."
+  },
+  {
+   "id": "roblox-03",
+   "track": "roblox",
+   "level": "high-school",
+   "topic": "DataStores: GetAsync/UpdateAsync, retries, budgets, session locking",
+   "sources": [
+    "https://create.roblox.com/docs/cloud-services/data-stores"
+   ],
+   "practice": "Save coins and checkpoint with UpdateAsync and retry logic.",
+   "done": "Code handles failures and never trusts the client."
+  },
+  {
+   "id": "roblox-04",
+   "track": "roblox",
+   "level": "university",
+   "topic": "Obby game: checkpoints, kill bricks, leaderstats, UI, sounds",
+   "sources": [],
+   "practice": "Build a 10-stage obby via Rojo.",
+   "done": "Rojo build succeeds; stages and checkpoints are listed in README."
+  },
+  {
+   "id": "roblox-05",
+   "track": "roblox",
+   "level": "university",
+   "topic": "Anti-exploit design, performance and mobile optimisation",
+   "sources": [],
+   "practice": "Audit the obby for exploits and performance, then fix issues.",
+   "done": "Audit report + fixes committed."
+  },
+  {
+   "id": "roblox-06",
+   "track": "roblox",
+   "level": "specialist",
+   "topic": "Monetisation and live-ops: game passes, developer products, analytics",
+   "sources": [
+    "https://create.roblox.com/docs/production/monetization"
+   ],
+   "practice": "Add a game pass (double coins) and a developer product (skip stage) with ProcessReceipt.",
+   "done": "ProcessReceipt is idempotent and documented."
+  },
+  {
+   "id": "3d-01",
+   "track": "3d",
+   "level": "middle",
+   "topic": "Blender interface, navigation, transforms, modifiers, bpy basics",
+   "sources": [
+    "https://docs.blender.org/manual/en/latest/",
+    "https://docs.blender.org/api/current/"
+   ],
+   "practice": "Write a Blender Python script that builds a low-poly house and exports it to GLB.",
+   "done": "blender_run_script exits 0 and the .glb exists."
+  },
+  {
+   "id": "3d-02",
+   "track": "3d",
+   "level": "high-school",
+   "topic": "Topology, UV unwrapping, PBR materials and texturing",
+   "sources": [],
+   "practice": "Model a game-ready crate: under 500 tris, UV-unwrapped, PBR material, exported to FBX.",
+   "done": "Script prints tri count < 500; FBX exists."
+  },
+  {
+   "id": "3d-03",
+   "track": "3d",
+   "level": "university",
+   "topic": "Rigging, weight painting and animation basics",
+   "sources": [],
+   "practice": "Rig a simple character and animate a walk cycle via script.",
+   "done": "Animation exported and rendered preview image saved."
+  },
+  {
+   "id": "3d-04",
+   "track": "3d",
+   "level": "university",
+   "topic": "Exporting to Roblox and Unity: scale, pivots, naming, collisions",
+   "sources": [],
+   "practice": "Export the crate with Roblox-correct scale and a Unity-ready FBX.",
+   "done": "Both exports exist with a checklist of scale/pivot settings."
+  },
+  {
+   "id": "unity-01",
+   "track": "unity",
+   "level": "high-school",
+   "topic": "Unity fundamentals: GameObjects, components, MonoBehaviour lifecycle, prefabs",
+   "sources": [
+    "https://docs.unity3d.com/Manual/index.html"
+   ],
+   "practice": "Create a Unity project with a player controller script.",
+   "done": "unity_batch compiles the project with no errors."
+  },
+  {
+   "id": "unity-02",
+   "track": "unity",
+   "level": "university",
+   "topic": "Unity gameplay systems: physics, input system, UI, ScriptableObjects",
+   "sources": [],
+   "practice": "Build a small collect-the-coins scene with UI score.",
+   "done": "Batch build succeeds."
+  },
+  {
+   "id": "math-01",
+   "track": "math",
+   "level": "primary",
+   "topic": "Arithmetic, fractions, percentages, order of operations",
+   "sources": [
+    "https://www.khanacademy.org/math/arithmetic"
+   ],
+   "practice": "Solve 20 generated arithmetic problems and verify each with run_python.",
+   "done": "All 20 verified."
+  },
+  {
+   "id": "math-02",
+   "track": "math",
+   "level": "middle",
+   "topic": "Algebra: equations, inequalities, functions, graphs",
+   "sources": [
+    "https://openstax.org/details/books/college-algebra-2e"
+   ],
+   "practice": "Solve 10 equation systems by hand-reasoning, then verify with sympy.",
+   "done": "All answers match sympy."
+  },
+  {
+   "id": "math-03",
+   "track": "math",
+   "level": "high-school",
+   "topic": "Geometry and trigonometry",
+   "sources": [],
+   "practice": "Prove 3 classic geometry results and check numeric instances in Python.",
+   "done": "Proof write-ups + numeric checks saved."
+  },
+  {
+   "id": "math-04",
+   "track": "math",
+   "level": "university",
+   "topic": "Calculus I-III: limits, derivatives, integrals, series, multivariable",
+   "sources": [
+    "https://openstax.org/details/books/calculus-volume-1"
+   ],
+   "practice": "Compute 15 derivatives/integrals and verify with sympy.",
+   "done": "All verified with sympy."
+  },
+  {
+   "id": "math-05",
+   "track": "math",
+   "level": "university",
+   "topic": "Linear algebra: vectors, matrices, eigenvalues, SVD",
+   "sources": [],
+   "practice": "Implement Gaussian elimination and compare with numpy.linalg on random matrices.",
+   "done": "Max error < 1e-9."
+  },
+  {
+   "id": "math-06",
+   "track": "math",
+   "level": "university",
+   "topic": "Probability and statistics",
+   "sources": [
+    "https://openstax.org/details/books/introductory-statistics-2e"
+   ],
+   "practice": "Simulate 5 classic probability problems and compare with exact answers.",
+   "done": "Simulation within 1% of exact values."
+  },
+  {
+   "id": "math-07",
+   "track": "math",
+   "level": "specialist",
+   "topic": "Proof techniques and number theory: induction, contradiction, modular arithmetic",
+   "sources": [],
+   "practice": "Write rigorous proofs for 5 number-theory statements and test them numerically up to 10^6.",
+   "done": "Proofs written; numeric checks pass."
+  },
+  {
+   "id": "math-08",
+   "track": "math",
+   "level": "specialist",
+   "topic": "Olympiad-style problem solving: invariants, extremal principle, pigeonhole",
+   "sources": [],
+   "practice": "Solve 5 past olympiad problems with verified numeric checks where possible.",
+   "done": "Solutions clearly separate proven steps from conjectures."
+  },
+  {
+   "id": "physics-01",
+   "track": "physics",
+   "level": "middle",
+   "topic": "Mechanics: kinematics, Newton's laws, energy, momentum",
+   "sources": [
+    "https://openstax.org/details/books/university-physics-volume-1"
+   ],
+   "practice": "Write a projectile simulator and compare with analytic formulas.",
+   "done": "Simulator matches analytic range within 0.1%."
+  },
+  {
+   "id": "physics-02",
+   "track": "physics",
+   "level": "high-school",
+   "topic": "Waves, thermodynamics, electricity and magnetism",
+   "sources": [
+    "https://openstax.org/details/books/university-physics-volume-2"
+   ],
+   "practice": "Solve 10 textbook problems with unit tracking, verified in Python.",
+   "done": "All answers checked."
+  },
+  {
+   "id": "physics-03",
+   "track": "physics",
+   "level": "specialist",
+   "topic": "Game physics: integration methods, collisions, rigid bodies",
+   "sources": [],
+   "practice": "Implement Euler vs Verlet integration and compare energy drift.",
+   "done": "Plot/data shows Verlet drift is lower."
+  },
+  {
+   "id": "chemistry-01",
+   "track": "chemistry",
+   "level": "middle",
+   "topic": "Atoms, periodic table, bonding, stoichiometry",
+   "sources": [
+    "https://openstax.org/details/books/chemistry-2e"
+   ],
+   "practice": "Write a molar-mass calculator for chemical formulas and test it on 10 compounds.",
+   "done": "All 10 correct."
+  },
+  {
+   "id": "chemistry-02",
+   "track": "chemistry",
+   "level": "high-school",
+   "topic": "Reactions, equilibrium, acids and bases, thermochemistry",
+   "sources": [],
+   "practice": "Balance 15 reactions automatically with a linear-algebra solver.",
+   "done": "All balanced correctly."
+  },
+  {
+   "id": "ai-01",
+   "track": "ai",
+   "level": "high-school",
+   "topic": "Machine learning basics: regression, classification, overfitting, evaluation",
+   "sources": [],
+   "practice": "Train a small classifier with scikit-learn and report metrics.",
+   "done": "Accuracy and confusion matrix reported."
+  },
+  {
+   "id": "ai-02",
+   "track": "ai",
+   "level": "university",
+   "topic": "Neural networks and transformers: attention, tokens, training, fine-tuning, LoRA",
+   "sources": [
+    "https://huggingface.co/docs/peft/index"
+   ],
+   "practice": "Write docs/how_aes_can_be_finetuned.md explaining LoRA for Aes with sources.",
+   "done": "Document exists with citations."
+  },
+  {
+   "id": "ai-03",
+   "track": "ai",
+   "level": "specialist",
+   "topic": "Agents: tool use, planning, memory, evaluation — applied to Aes itself",
+   "sources": [],
+   "practice": "Propose 3 new eval cases for Aes and add them via a task list for the owner.",
+   "done": "3 eval proposals written with expected/forbidden keywords."
+  }
+ ]
+}
