@@ -45,7 +45,7 @@ DB_PATH = DATA / "aes2.db"
 IDENTITY_BUNDLE = RESOURCE_ROOT / "identity"
 IDENTITY_DATA = DATA / "identity"
 IDENTITY_DATA.mkdir(parents=True, exist_ok=True)
-IDENTITY_VERSION_TAG = "aes-identity-version: 2.2"
+IDENTITY_VERSION_TAG = "aes-identity-version: 2.3"
 for _name in ("SOUL.md", "IDENTITY.md", "USER.md"):
     _src = IDENTITY_BUNDLE / _name
     _dst = IDENTITY_DATA / _name

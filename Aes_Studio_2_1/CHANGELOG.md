@@ -2,6 +2,12 @@
 
 ## Aes Studio 2.2.0 — Brain & Autopilot
 
+- **New desktop UI (PySide6):** icon rail, chat sidebar with search/pin/rename/export, streaming answers, live tool timeline, sources and goals panel, Stop button, Training Center (daily hours, research, curriculum, brain growth, progress chart, live log), Library, Brains (with hardware check), Permissions, Settings (language, identity editor with history, owner API token). Arabic RTL. Tk UI kept as fallback (`--tk-ui`). See `docs/ADR/0001-desktop-ui-pyside6.md`.
+- **Local-first:** new default profile `Aes Local` (Ollama on the owner's GPU, free); cloud profiles flagged as paid; `--doctor` hardware check with model recommendations.
+- **Stop + streaming:** agent cancellation that kills running tool processes; token streaming for all runtimes; agent events (run/model/tool) with durations; repeated-call loop warning; model/run traceability in message metadata.
+- **Daily training by hours** (default 3 h): repeats curriculum, drills and research topics until the time budget ends.
+- QLoRA defaults tuned for 8 GB GPUs (`--max-seq 1024 --rank 16`).
+
 - **Research Mode** (`--research "..." --hours N [--show-browser]`, `research` goal kind, `research` tool): plans a syllabus from one prompt, reads articles/PDFs, finds and learns from tutorial videos (`video_search`), discovers follow-up lessons by itself, archives every raw source in `<data>/library/raw`.
 
 - **Daily training** (`--daily`, `run_daily_training.bat`, `install_daily_task.bat`, GUI button): curriculum progression across all tracks, computer-graded maths/science/code drills, harvesting of verified examples, evals, daily score trend, optional automatic LoRA candidate once enough data exists.

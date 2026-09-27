@@ -43,13 +43,19 @@ def _text_only(messages):
     return [{'role': m['role'], 'content': _split_images(m.get('content',''))[0]} for m in messages]
 
 class BaseRuntime:
-    def complete(self, messages: list[dict], config: ModelConfig) -> str:
+    def complete(self, messages: list[dict], config: ModelConfig, on_token=None) -> str:
+        """Return the full reply. If on_token is given, call it with text pieces as they arrive (streaming)."""
         raise NotImplementedError
     def close(self):
         pass
 
 class DemoRuntime(BaseRuntime):
-    def complete(self, messages, config):
+    def complete(self, messages, config, on_token=None):
+        out = self._reply(messages, config)
+        if on_token: on_token(out)
+        return out
+
+    def _reply(self, messages, config):
         user = next((m.get('content','') for m in reversed(_text_only(messages)) if m.get('role')=='user'), '')
         if '<tool_result' in user:
             return "I received the tool result. Demo mode cannot reason deeply, but the Aes agent loop is working."
@@ -82,8 +88,15 @@ class LlamaCppRuntime(BaseRuntime):
         except Exception as e:
             raise ModelRuntimeError(f"Failed to load GGUF: {e}") from e
 
-    def complete(self, messages, config):
+    def complete(self, messages, config, on_token=None):
         try:
+            if on_token:
+                parts = []
+                for chunk in self.llm.create_chat_completion(messages=_text_only(messages), temperature=float(config.temperature),
+                                                             max_tokens=int(config.max_tokens), stream=True):
+                    piece = chunk['choices'][0].get('delta', {}).get('content') or ''
+                    if piece: parts.append(piece); on_token(piece)
+                return ''.join(parts)
             out = self.llm.create_chat_completion(
                 messages=_text_only(messages),
                 temperature=float(config.temperature),
@@ -119,9 +132,34 @@ class OpenAICompatRuntime(BaseRuntime):
                 out.append({'role': m['role'], 'content': text})
         return out
 
-    def complete(self, messages, config):
+    def _stream(self, body, headers, on_token):
+        body = dict(body, stream=True); parts = []; other = []
+        req = urllib.request.Request(self.url, data=json.dumps(body).encode('utf-8'), headers=headers, method='POST')
+        with urllib.request.urlopen(req, timeout=600) as r:
+            for raw in r:
+                line = raw.decode('utf-8', errors='replace').strip()
+                if not line.startswith('data:'):
+                    other.append(line); continue
+                data = line[5:].strip()
+                if data == '[DONE]': break
+                try: piece = (json.loads(data)['choices'][0].get('delta') or {}).get('content') or ''
+                except Exception: continue
+                if piece: parts.append(piece); on_token(piece)
+        if not parts and other:   # server ignored stream=true and sent a normal JSON reply
+            text = json.loads(''.join(other))['choices'][0]['message'].get('content') or ''
+            on_token(text); return text
+        return ''.join(parts)
+
+    def complete(self, messages, config, on_token=None):
         body = {'model': config.model_path, 'messages': self._convert(messages),
                 'temperature': float(config.temperature), 'max_tokens': int(config.max_tokens)}
+        if on_token:
+            headers = {'Content-Type': 'application/json'}
+            if self.api_key: headers['Authorization'] = 'Bearer ' + self.api_key
+            try:
+                return self._stream(body, headers, on_token)
+            except Exception:
+                pass  # fall back to a normal request below
         headers = {'Content-Type': 'application/json'}
         if self.api_key: headers['Authorization'] = 'Bearer ' + self.api_key
         req = urllib.request.Request(self.url, data=json.dumps(body).encode('utf-8'), headers=headers, method='POST')
@@ -178,7 +216,7 @@ class AnthropicRuntime(BaseRuntime):
             out.insert(0, {'role': 'user', 'content': '(start)'})
         return system, out
 
-    def complete(self, messages, config):
+    def complete(self, messages, config, on_token=None):
         import anthropic
         system, msgs = self._convert(messages)
         params = dict(model=config.model_path or 'claude-opus-5', max_tokens=max(1024, int(config.max_tokens)),
@@ -188,12 +226,16 @@ class AnthropicRuntime(BaseRuntime):
                 try:
                     with self.client.beta.messages.stream(betas=['server-side-fallback-2026-07-01'],
                                                           extra_body={'fallbacks': 'default'}, **params) as stream:
+                        if on_token:
+                            for piece in stream.text_stream: on_token(piece)
                         msg = stream.get_final_message()
                 except anthropic.BadRequestError:
                     self._fallbacks = False  # model/account without server-side fallbacks
-                    return self.complete(messages, config)
+                    return self.complete(messages, config, on_token)
             else:
                 with self.client.messages.stream(**params) as stream:
+                    if on_token:
+                        for piece in stream.text_stream: on_token(piece)
                     msg = stream.get_final_message()
         except anthropic.AuthenticationError as e:
             raise ModelRuntimeError('Claude API key is invalid or missing (set ANTHROPIC_API_KEY or the profile key).') from e
@@ -250,14 +292,14 @@ class RuntimeManager:
                     try: cached[1].close()
                     except Exception: pass
 
-    def complete(self, row, messages):
+    def complete(self, row, messages, on_token=None):
         cfg = ModelConfig(
             name=row['name'], runtime=row['runtime'], model_path=row['model_path'] or '',
             context_size=int(row['context_size']), gpu_layers=int(row['gpu_layers']),
             temperature=float(row['temperature']), max_tokens=int(row['max_tokens']),
             endpoint=_get(row, 'endpoint'), api_key=_get(row, 'api_key')
         )
-        return self.get(cfg).complete(messages, cfg)
+        return self.get(cfg).complete(messages, cfg, on_token)
 
 def _get(row, key, default=''):
     try: return row[key] or default

@@ -37,12 +37,13 @@ def main(argv=None):
     ap.add_argument('--mode', choices=['ask', 'auto', 'full'], help='set the permission mode before running')
     ap.add_argument('--api', action='store_true', help='run the owner API server (Aes Hub) in the foreground')
     ap.add_argument('--status', action='store_true', help='print self status')
+    ap.add_argument('--doctor', action='store_true', help='check GPU, local model server, tools and packages; recommend free local models')
     ap.add_argument('--curriculum', nargs='?', const='all', metavar='TRACKS', help='queue the training curriculum (all, or e.g. roblox,programming)')
     ap.add_argument('--max-level', choices=['primary', 'middle', 'high-school', 'university', 'specialist'], help='limit --curriculum to this level')
     ap.add_argument('--library', metavar='FOLDER', help='import every PDF/DOCX/text file in a folder into knowledge')
     ap.add_argument('--video', metavar='URL_OR_FILE', help='queue a learn-from-video goal')
     ap.add_argument('--research', metavar='PROMPT', help='Research Mode: teach yourself a whole field from one prompt')
-    ap.add_argument('--hours', type=float, default=1.0, help='time budget for --research')
+    ap.add_argument('--hours', type=float, default=None, help='time budget for --research / --daily (e.g. 3)')
     ap.add_argument('--show-browser', action='store_true', help='open each page in Chrome while researching so you can watch')
     ap.add_argument('--daily', action='store_true', help='run the daily training cycle (school, drills, exam, brain growth, report)')
     ap.add_argument('--no-school', action='store_true', help='with --daily: skip curriculum/Autopilot, only drills + exam')
@@ -54,6 +55,9 @@ def main(argv=None):
         print(f'Model profile not found: {model}. Profiles: ' + ', '.join(r['name'] for r in db.models())); return 2
     if a.mode: db.set_setting('permission_mode', a.mode)
 
+    if a.doctor:
+        from .hardware import doctor
+        print(doctor(db))
     if a.status: print(tools.call('self_status', {}))
     if a.goal: print(f'Queued goal #{db.add_goal(a.goal, a.detail, "task")}')
     if a.learn: print(f'Queued study goal #{db.add_goal(a.learn, a.detail, "learn")}')
@@ -79,13 +83,13 @@ def main(argv=None):
         from .daily import DailyTrainer
         db.set_setting('autopilot_stop', '0')
         print(f"Daily training with brain '{model}', permission mode '{db.setting('permission_mode','ask')}'.")
-        DailyTrainer(db, agent).run(model, school=not a.no_school)
+        DailyTrainer(db, agent).run(model, school=not a.no_school, hours=a.hours)
     if a.research:
         from .research import ResearchMode
         db.set_setting('autopilot_stop', '0')
         db.set_setting('research_show_browser', '1' if a.show_browser else '0')
-        print(f'Research Mode: "{a.research}" for {a.hours}h with brain {model}.')
-        print('Report:', ResearchMode(db, agent).run(model, a.research, a.hours))
+        print(f'Research Mode: "{a.research}" for {a.hours or 1}h with brain {model}.')
+        print('Report:', ResearchMode(db, agent).run(model, a.research, a.hours or 1))
     if a.api:
         from .hub import AesHub
         hub = AesHub(db, runtimes, agent)

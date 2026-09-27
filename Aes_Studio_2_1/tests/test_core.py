@@ -31,7 +31,9 @@ class FakeLLM(BaseHTTPRequestHandler):
         msgs = body['messages']; last = msgs[-1]['content']
         last = last if isinstance(last, str) else ' '.join(p.get('text', '') for p in last)
         system = msgs[0]['content'] if msgs and msgs[0]['role'] == 'system' else ''
-        if 'syllabus' in last:
+        if 'SLEEP LOOP' in json.dumps(msgs):
+            reply = '<tool_call>{"name":"run_python","arguments":{"code":"import time; time.sleep(20)"}}</tool_call>'
+        elif 'syllabus' in last:
             reply = '["Blender interface", "Blender modifiers"]'
         elif 'follow-up lessons' in last:
             reply = '["Blender modifiers", "Blender geometry nodes"]'
@@ -74,7 +76,7 @@ class AesCoreTests(unittest.TestCase):
     def test_data_dir_and_identity(self):
         self.assertEqual(str(DATA), _TMP)
         for n in ('SOUL.md', 'IDENTITY.md', 'USER.md'):
-            self.assertIn('aes-identity-version: 2.2', (IDENTITY_DATA / n).read_text(encoding='utf-8'))
+            self.assertIn('aes-identity-version: 2.3', (IDENTITY_DATA / n).read_text(encoding='utf-8'))
 
     def test_seeded_profiles_and_token(self):
         names = {r['name'] for r in self.db.models()}
@@ -198,7 +200,7 @@ class AesCoreTests(unittest.TestCase):
         from aes.daily import DailyTrainer
         self.db.set_setting('daily_math_drills', '4'); self.db.set_setting('daily_code_drills', '2')
         before = len(self.db.training_examples())
-        report = DailyTrainer(self.db, self.agent, log=lambda m: None).run('Fake', school=False)
+        report = DailyTrainer(self.db, self.agent, log=lambda m: None).run('Fake', school=False, hours=0)
         text = Path(report).read_text(encoding='utf-8')
         self.assertIn('Maths/science drills: 0/4', text)   # the fake model answers wrong ...
         self.assertIn('LoRA training is off', text)
@@ -216,6 +218,57 @@ class AesCoreTests(unittest.TestCase):
         self.assertIn('Blender geometry nodes', text)          # discovered by itself
         self.assertEqual(text.count('Blender modifiers'), 1)   # no duplicate lessons
         self.assertTrue(list((DATA / 'library' / 'raw').rglob('*.txt')))  # raw sources archived
+
+    def test_stop_cancels_running_task_and_kills_process(self):
+        import time as _t
+        cid = self.db.new_conversation('t'); out = {}
+        th = threading.Thread(target=lambda: out.update(r=self.agent.run(cid, 'Fake', 'SLEEP LOOP')))
+        t0 = _t.time(); th.start(); _t.sleep(1.5); self.agent.cancel(); th.join(15)
+        self.assertFalse(th.is_alive())
+        self.assertLess(_t.time() - t0, 10)               # the 20 s process was killed
+        self.assertIn('Stopped by owner', out['r'][0])
+        self.agent.cancel_event.clear()
+
+    def test_streaming_tokens_reach_listeners(self):
+        events = []
+        self.agent.listeners.append(events.append)
+        try:
+            cid = self.db.new_conversation('t')
+            ans, _, _ = self.agent.run(cid, 'Fake', 'hello there')
+        finally:
+            self.agent.listeners.remove(events.append)
+        types = [e['type'] for e in events]
+        self.assertIn('run_start', types); self.assertIn('run_end', types)
+        self.assertEqual(''.join(e['text'] for e in events if e['type'] == 'token'), ans)
+
+    def test_hardware_recommendation_and_cloud_flag(self):
+        from aes.hardware import recommend, is_cloud
+        self.assertEqual(recommend(8.0)['brain'], 'qwen2.5vl:7b')        # RTX 3070
+        self.assertFalse(is_cloud(self.db.model('Aes Local')))
+        self.assertTrue(is_cloud(self.db.model('Aes 2.2 Claude')))
+        self.assertEqual(self.db.setting('default_model'), 'Aes Local')   # local-first default
+
+    def test_qt_interface_smoke(self):
+        try:
+            os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
+            from PySide6.QtWidgets import QApplication
+            from aes import qt_ui
+        except Exception as e:
+            self.skipTest(f'PySide6 not available: {e}')
+        import time as _t
+        app = QApplication.instance() or QApplication([])
+        w = qt_ui.AesWindow(None, core=(self.db, self.runtimes, self.tools, self.agent))
+        i = w.model_box.findData('Fake'); w.model_box.setCurrentIndex(i)
+        w.prompt.setPlainText('hello from the UI'); w.send()
+        deadline = _t.time() + 15
+        while w.busy and _t.time() < deadline:
+            app.processEvents(); _t.sleep(0.05)
+        app.processEvents()
+        self.assertIsNone(w.busy)
+        texts = [b.body.text() for b in w.view.inner.findChildren(qt_ui.Bubble)]
+        self.assertIn('Hello, I am Aes.', texts)
+        for page in w.PAGES: w.show_page(page); app.processEvents()
+        self.agent.listeners.clear(); w.deleteLater()
 
     def test_html_to_text(self):
         self.assertEqual(html_to_text('<html><script>x()</script><p>Hi &amp; bye</p></html>'), 'Hi & bye')

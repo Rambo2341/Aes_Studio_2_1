@@ -115,6 +115,8 @@ class Database:
             cols={r[1] for r in self.conn.execute("PRAGMA table_info(model_profiles)")}
             if 'endpoint' not in cols: self.conn.execute("ALTER TABLE model_profiles ADD COLUMN endpoint TEXT NOT NULL DEFAULT ''")
             if 'api_key' not in cols: self.conn.execute("ALTER TABLE model_profiles ADD COLUMN api_key TEXT NOT NULL DEFAULT ''")
+            ccols={r[1] for r in self.conn.execute("PRAGMA table_info(conversations)")}
+            if 'pinned' not in ccols: self.conn.execute("ALTER TABLE conversations ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0")
             self.conn.commit()
         self._seed()
         self._import_legacy_once()
@@ -127,12 +129,13 @@ class Database:
         now = time.time()
         with self.lock:
             defaults = {
-                'app_version':'2.2.0', 'default_model':'Aes 2.1 Local', 'memory_enabled':'1',
+                'app_version':'2.2.0', 'default_model':'Aes Local', 'memory_enabled':'1',
                 'auto_title':'1', 'startup_page':'chat', 'release_channel':'stable',
                 'workspace_root':'', 'hub_port':'8765', 'hub_token':secrets.token_urlsafe(32),
                 'hub_agent_enabled':'0', 'agent_max_steps':'30', 'autopilot_rounds':'6', 'ui_language':'auto',
                 'daily_units':'3', 'daily_max_goals':'12', 'daily_math_drills':'20', 'daily_code_drills':'6',
-                'daily_lora_enabled':'0', 'daily_lora_base':'Qwen/Qwen2.5-Coder-7B-Instruct', 'daily_lora_args':'--qlora --max-seq 2048', 'daily_lora_min_examples':'300', 'research_show_browser':'0', 'daily_history':'[]',
+                'daily_lora_enabled':'0', 'daily_lora_base':'Qwen/Qwen2.5-Coder-7B-Instruct', 'daily_lora_args':'--qlora --max-seq 1024 --rank 16', 'daily_lora_min_examples':'300', 'research_show_browser':'0', 'daily_hours':'3',
+                'daily_research_topics':'Blender 3D modelling and animation|Roblox Luau game development|Unity and Godot game development|C++ and C# programming|Web development with JavaScript and TypeScript', 'daily_history':'[]',
                 'auto_evolve':'1', 'auto_evolve_min_feedback':'8', 'theme':'midnight', 'permission_mode':'ask',
                 'blender_path':'', 'unity_path':'', 'rojo_path':'rojo', 'comfyui_url':'http://127.0.0.1:8188'
             }
@@ -164,6 +167,14 @@ class Database:
             for (name,rt,mp,ep,key,ctx,gpu,temp,mx,sp) in brains:
                 self.conn.execute("""INSERT OR IGNORE INTO model_profiles(name,runtime,model_path,endpoint,api_key,context_size,gpu_layers,temperature,max_tokens,system_prompt,created_at,updated_at)
                                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""", (name,rt,mp,ep,key,ctx,gpu,temp,mx,sp,now,now))
+            # Local-first default brain: free, private, runs on the owner's GPU through Ollama.
+            self.conn.execute("""INSERT OR IGNORE INTO model_profiles(name,runtime,model_path,endpoint,api_key,context_size,gpu_layers,temperature,max_tokens,system_prompt,created_at,updated_at)
+                               VALUES('Aes Local','openai_compat','qwen2.5vl:7b','http://127.0.0.1:11434/v1','',16384,0,0.2,4096,?,?,?)""",
+                              (DEFAULT_SYSTEM + "\nYou are Aes running fully locally on the owner's own GPU. No data leaves this PC.",now,now))
+            cur=self.conn.execute("SELECT value FROM settings WHERE key='default_model'").fetchone()[0]
+            row=self.conn.execute("SELECT runtime,model_path FROM model_profiles WHERE name=?",(cur,)).fetchone()
+            if row is None or (row[0]=='llama_cpp' and not row[1]) or row[0]=='demo':
+                self.conn.execute("UPDATE settings SET value='Aes Local' WHERE key='default_model'")
             # Replace the insecure legacy default token.
             if self.conn.execute("SELECT value FROM settings WHERE key='hub_token'").fetchone()[0] in ('','change-me'):
                 self.conn.execute("UPDATE settings SET value=? WHERE key='hub_token'",(secrets.token_urlsafe(32),))
@@ -262,8 +273,14 @@ class Database:
         cid=str(uuid.uuid4()); now=time.time(); self.execute("INSERT INTO conversations(id,title,project_id,model_name,mode,created_at,updated_at) VALUES(?,?,?,?,?,?,?)",(cid,title,project_id,model_name,mode,now,now)); return cid
     def conversations(self,search=''):
         if search:
-            q=f'%{search}%'; return self.query("SELECT * FROM conversations WHERE title LIKE ? ORDER BY updated_at DESC",(q,))
-        return self.query("SELECT * FROM conversations ORDER BY updated_at DESC")
+            q=f'%{search}%'; return self.query("SELECT * FROM conversations WHERE title LIKE ? OR id IN (SELECT conversation_id FROM messages WHERE content LIKE ?) ORDER BY pinned DESC,updated_at DESC",(q,q))
+        return self.query("SELECT * FROM conversations ORDER BY pinned DESC,updated_at DESC")
+    def set_pinned(self,cid,pinned): self.execute("UPDATE conversations SET pinned=? WHERE id=?",(int(bool(pinned)),cid))
+    def export_conversation(self,cid):
+        c=self.one("SELECT * FROM conversations WHERE id=?",(cid,))
+        lines=[f"# {c['title'] if c else cid}",'']
+        for m in self.messages(cid): lines += [f"## {m['role']}",'',m['content'],'']
+        return '\n'.join(lines)
     def messages(self,cid): return self.query("SELECT * FROM messages WHERE conversation_id=? ORDER BY id",(cid,))
     def add_message(self,cid,role,content,meta=None):
         now=time.time(); cur=self.execute("INSERT INTO messages(conversation_id,role,content,meta_json,created_at) VALUES(?,?,?,?,?)",(cid,role,content,json.dumps(meta or {},ensure_ascii=False),now)); self.execute("UPDATE conversations SET updated_at=? WHERE id=?",(now,cid)); return cur.lastrowid

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-import json, os, re, shlex, subprocess, sys, tempfile, time, urllib.request, urllib.parse, html, webbrowser
+import json, os, re, shlex, subprocess, sys, tempfile, threading, time, urllib.request, urllib.parse, html, webbrowser
 from pathlib import Path
 from .security import RISK_SAFE,RISK_WRITE,RISK_EXEC,RISK_NETWORK,RISK_COMPUTER,RISK_SYSTEM
 
@@ -14,6 +14,8 @@ class Tool:
 
 class ToolError(RuntimeError): pass
 
+class ToolCancelled(ToolError): pass
+
 CHROME_WINDOWS=[os.path.expandvars(p) for p in (r'%ProgramFiles%\Google\Chrome\Application\chrome.exe',
     r'%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe', r'%LocalAppData%\Google\Chrome\Application\chrome.exe')]
 
@@ -21,6 +23,7 @@ class ToolRegistry:
     def __init__(self, workspace: str | Path, db, permission_manager):
         self.workspace=Path(workspace).resolve(); self.workspace.mkdir(parents=True,exist_ok=True)
         self.db=db; self.permission=permission_manager; self.tools={}
+        self.cancel_event=threading.Event()   # set by the engine / Stop button
         self._register_builtin()
 
     def set_workspace(self,path):
@@ -34,6 +37,7 @@ class ToolRegistry:
             rows.append(f"- {name}: {t.description} | arguments={json.dumps(t.schema,ensure_ascii=False)} | risk={t.risk}")
         return '\n'.join(rows)
     def call(self,name,args,allowed=None):
+        if self.cancel_event.is_set(): raise ToolCancelled('Stopped by owner; no new tools are executed.')
         if name not in self.tools: raise ToolError(f'Unknown tool: {name}')
         if allowed is not None and name not in allowed: raise ToolError(f"Tool '{name}' is not allowed in this agent role")
         t=self.tools[name]
@@ -46,6 +50,37 @@ class ToolRegistry:
         except Exception as e:
             self.db.log('tool_call',summary+f' -> {e}',False)
             raise
+
+    def _exec(self,argv,timeout=120,shell=False,cwd=None):
+        """Run a process that the Stop button can kill. Returns (exit_code, combined_output)."""
+        flags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name=='nt' else 0
+        proc=subprocess.Popen(argv,cwd=cwd or self.workspace,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,
+                              encoding='utf-8',errors='replace',shell=shell,creationflags=flags,start_new_session=(os.name!='nt'))
+        out=[]; reader=threading.Thread(target=lambda:out.append(proc.stdout.read() or ''),daemon=True); reader.start()
+        deadline=time.time()+max(1,int(timeout))
+        while proc.poll() is None:
+            if self.cancel_event.is_set() or time.time()>deadline:
+                self._kill_tree(proc)
+                try: proc.wait(5)
+                except Exception: pass
+                reader.join(2)
+                try: proc.stdout.close()
+                except Exception: pass
+                raise (ToolCancelled('Stopped by owner.') if self.cancel_event.is_set() else ToolError(f'Timed out after {timeout}s'))
+            time.sleep(0.1)
+        reader.join(5)
+        try: proc.stdout.close()
+        except Exception: pass
+        return proc.returncode,(''.join(out))[-30000:]
+    @staticmethod
+    def _kill_tree(proc):
+        try:
+            if os.name=='nt': subprocess.run(['taskkill','/F','/T','/PID',str(proc.pid)],capture_output=True)
+            else:
+                import signal; os.killpg(os.getpgid(proc.pid),signal.SIGKILL)
+        except Exception:
+            try: proc.kill()
+            except Exception: pass
 
     def _safe(self,rel):
         rel=rel or '.'
@@ -100,9 +135,8 @@ class ToolRegistry:
         lowered=(' '.join(parts)+' '+cmd).lower()
         if any(x in lowered for x in self.BLOCKED): raise ToolError('A destructive system command was blocked')
         use_shell=str(shell).lower() in ('1','true','yes')
-        cp=subprocess.run(cmd if use_shell else parts,cwd=self.workspace,capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=max(1,min(int(timeout),3600)),shell=use_shell)
-        out=(cp.stdout or '') + (('\n'+cp.stderr) if cp.stderr else '')
-        return f'exit={cp.returncode}\n{out[-30000:]}'
+        code,out=self._exec(cmd if use_shell else parts,timeout=max(1,min(int(timeout),3600)),shell=use_shell)
+        return f'exit={code}\n{out}'
     def _git_status(self): return self._run('git status --short')
     def _git_diff(self): return self._run('git diff -- .')
     def _fetch_url(self,url,max_chars=30000,render=False):
@@ -171,21 +205,21 @@ class ToolRegistry:
     def _blender_run_script(self,script_path):
         blender=self.db.setting('blender_path','').strip() or 'blender'
         p=self._safe(script_path)
-        cp=subprocess.run([blender,'--background','--python',str(p)],cwd=self.workspace,capture_output=True,text=True,timeout=600)
-        return f'exit={cp.returncode}\n{((cp.stdout or "")+(cp.stderr or ""))[-30000:]}'
+        code,out=self._exec([blender,'--background','--python',str(p)],timeout=1800)
+        return f'exit={code}\n{out}'
     def _unity_batch(self,project_path='.',execute_method=''):
         unity=self.db.setting('unity_path','').strip()
         if not unity: raise ToolError('Set the Unity Editor executable path in Settings first')
         proj=self._safe(project_path)
         args=[unity,'-batchmode','-quit','-projectPath',str(proj),'-logFile','-']
         if execute_method: args += ['-executeMethod',execute_method]
-        cp=subprocess.run(args,cwd=self.workspace,capture_output=True,text=True,timeout=900)
-        return f'exit={cp.returncode}\n{((cp.stdout or "")+(cp.stderr or ""))[-30000:]}'
+        code,out=self._exec(args,timeout=1800)
+        return f'exit={code}\n{out}'
     def _roblox_build(self,project_file='default.project.json',output='build.rbxlx'):
         rojo=self.db.setting('rojo_path','rojo').strip() or 'rojo'
         proj=self._safe(project_file); out=self._safe(output)
-        cp=subprocess.run([rojo,'build',str(proj),'-o',str(out)],cwd=self.workspace,capture_output=True,text=True,timeout=300)
-        return f'exit={cp.returncode}\n{((cp.stdout or "")+(cp.stderr or ""))[-30000:]}'
+        code,log=self._exec([rojo,'build',str(proj),'-o',str(out)],timeout=300)
+        return f'exit={code}\n{log}'
 
     def _task_create(self,title,detail=''):
         tid=self.db.add_task(title,detail); return f'Created task #{tid}: {title}'
@@ -322,9 +356,8 @@ class ToolRegistry:
         fd,path=tempfile.mkstemp(suffix='.py',dir=str(self.workspace)); os.close(fd)
         try:
             Path(path).write_text(str(code),encoding='utf-8')
-            cp=subprocess.run([sys.executable if not getattr(sys,'frozen',False) else 'python',path],cwd=self.workspace,capture_output=True,text=True,encoding='utf-8',errors='replace',timeout=max(1,min(int(timeout),1800)))
-            out=(cp.stdout or '')+(('\n'+cp.stderr) if cp.stderr else '')
-            return f'exit={cp.returncode}\n{out[-30000:]}'
+            code,out=self._exec([sys.executable if not getattr(sys,'frozen',False) else 'python',path],timeout=max(1,min(int(timeout),1800)))
+            return f'exit={code}\n{out}'
         finally:
             try: os.remove(path)
             except Exception: pass

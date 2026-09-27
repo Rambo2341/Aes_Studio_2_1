@@ -93,12 +93,38 @@ class DailyTrainer:
                 'run Evals; promote only if the score beats the current brain.')
 
     # all ------------------------------------------------------------------------
-    def run(self, model_name, school=True):
-        started = time.time(); log = []
-        added = report = None
-        if school:
-            added, report = self.school(model_name)
-        drill = self.drills(model_name)
+    def _stopped(self):
+        from .autopilot import STOP_FILE
+        return STOP_FILE.exists() or self.db.setting('autopilot_stop', '0') == '1'
+
+    def run(self, model_name, school=True, hours=None):
+        """One training day. With hours (e.g. 3) it keeps cycling school -> drills -> research topics
+        until the time budget is used, then harvests, takes the exam and (optionally) grows the brain."""
+        started = time.time()
+        hours = float(hours if hours is not None else (self.db.setting('daily_hours', '0') or 0))
+        deadline = started + hours * 3600 if hours > 0 else None
+        added = 0; report = None; rounds = 0
+        drill = {'math_ok': 0, 'math_total': 0, 'code_ok': 0, 'code_total': 0}
+        while True:
+            rounds += 1
+            if school:
+                a, report = self.school(model_name); added += a
+            d = self.drills(model_name)
+            for k in drill: drill[k] += d[k]
+            if deadline is None or time.time() >= deadline or self._stopped():
+                break
+            topic = self.db.setting('daily_research_topics', '').split('|')
+            topic = [t.strip() for t in topic if t.strip()]
+            if topic:
+                from .research import ResearchMode
+                left_h = max(0.05, min(0.5, (deadline - time.time()) / 3600))
+                try: ResearchMode(self.db, self.agent, log=self.log).run(model_name, topic[(rounds - 1) % len(topic)], left_h, max_topics=3)
+                except Exception as e: self.log(f'Research skipped: {e}')
+            if time.time() >= deadline or self._stopped():
+                break
+            if not school and not topic:
+                continue
+        self.log(f'Training time used: {int((time.time() - started) / 60)} min in {rounds} round(s).')
         harvested = self.harvest()
         score, passed, total = self.exam(model_name)
         brain = self.grow_brain()
@@ -109,9 +135,9 @@ class DailyTrainer:
         path = Path(REPORTS) / f'daily_{time.strftime("%Y-%m-%d_%H%M")}.md'
         pct = lambda a, b: f'{(100 * a / b):.0f}%' if b else '-'
         lines = [f'# Aes daily training — {day["date"]}', '',
-                 f'Brain: {model_name}  ·  Duration: {int((time.time() - started) / 60)} min', '',
+                 f'Brain: {model_name}  ·  Duration: {int((time.time() - started) / 60)} min  ·  Rounds: {rounds}', '',
                  '## Today', '',
-                 f'- Curriculum goals queued: {added if added is not None else "skipped"}' + (f'  (autopilot report: {report.name})' if report else ''),
+                 f'- Curriculum goals queued: {added if school else "skipped"}' + (f'  (autopilot report: {report.name})' if report else ''),
                  f'- Maths/science drills: {drill["math_ok"]}/{drill["math_total"]} ({pct(drill["math_ok"], drill["math_total"])})',
                  f'- Code drills (hidden tests): {drill["code_ok"]}/{drill["code_total"]} ({pct(drill["code_ok"], drill["code_total"])})',
                  f'- Evals: {"-" if score is None else f"{score:.0f}% ({passed}/{total})"}',

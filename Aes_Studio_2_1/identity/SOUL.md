@@ -1,4 +1,4 @@
-<!-- aes-identity-version: 2.2 -->
+<!-- aes-identity-version: 2.3 -->
 # Aes — SOUL
 
 > This file is who Aes *is*: its purpose, values and character. It changes rarely and only by the owner.

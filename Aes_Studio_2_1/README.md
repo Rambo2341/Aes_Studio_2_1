@@ -4,6 +4,12 @@ Aes Studio is a Windows-first **private local AI agent workstation**. It is desi
 
 ## Aes 2.2 — what's new
 
+![Aes Studio chat](docs/screenshots/ui_en_chat.jpg)
+
+- **New interface** (PySide6): streaming answers, Stop button, live tool timeline, Training Center, Arabic RTL. `python main.py --tk-ui` opens the classic UI.
+- **Yours and free by default:** the default brain `Aes Local` runs on your own GPU through Ollama — no API key, no bill. `python main.py --doctor` tells you which free model fits your PC.
+- **Train it every day:** Training Center → hours (default 3) → *Start training now*, or `install_daily_task.bat` for every night.
+
 - **Pick a real brain** (Models page): Claude (`anthropic`), Ollama / LM Studio / DeepSeek / any OpenAI-compatible server (`openai_compat`), or a local GGUF (`llama_cpp`). Aes's intelligence is mostly the brain; Aes adds identity, memory, skills, tools, permissions and the agent loop.
 - **Sees and controls the PC:** screenshots the model can see, mouse, keyboard/hotkeys, clipboard, Chrome.
 - **Autopilot:** queue goals, pick Auto/Full access, press *Run Autopilot* (or `run_autopilot.bat`), sleep, read the morning report in `<data>\reports`.
