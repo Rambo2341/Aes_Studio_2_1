@@ -512,7 +512,7 @@ class AesStudio(tk.Tk):
         self.label_field(inn,'GOAL',self.entry(inn,self.goal_title))
         tk.Label(inn,text='DEFINITION OF DONE / DETAIL',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');self.goal_detail=self.text(inn,7);self.goal_detail.pack(fill='both',expand=True)
         row=tk.Frame(inn,bg=C.CARD);row.pack(fill='x',pady=8);ttk.Combobox(row,textvariable=self.goal_kind,state='readonly',values=['task','learn','video'],width=8).pack(side='left');self.button(row,'Queue goal',self.queue_goal,accent=True).pack(side='left',padx=7);self.button(row,'Delete',self.delete_goal,danger=True).pack(side='right')
-        act=tk.Frame(inn,bg=C.CARD);act.pack(fill='x',pady=4);self.autopilot_btn=self.button(act,'☾  Run Autopilot now',self.run_autopilot,accent=True);self.autopilot_btn.pack(side='left');self.button(act,'Stop',self.stop_autopilot,danger=True).pack(side='left',padx=7);self.button(act,'Reports',lambda:self.open_folder(DATA/'reports')).pack(side='right');self.button(act,'Load training plan',self.load_curriculum).pack(side='right',padx=7)
+        act=tk.Frame(inn,bg=C.CARD);act.pack(fill='x',pady=4);self.autopilot_btn=self.button(act,'☾  Run Autopilot now',self.run_autopilot,accent=True);self.autopilot_btn.pack(side='left');self.button(act,'Stop',self.stop_autopilot,danger=True).pack(side='left',padx=7);self.button(act,'Reports',lambda:self.open_folder(DATA/'reports')).pack(side='right');self.button(act,'Load training plan',self.load_curriculum).pack(side='right',padx=7);self.button(act,'Daily training',self.run_daily).pack(side='right')
         self.goal_view=self.text(inn,8);self.goal_view.pack(fill='both',expand=True,pady=(8,0));self._goals=[]
     def refresh_autopilot(self):
         if not hasattr(self,'goal_list'):return
@@ -546,6 +546,16 @@ class AesStudio(tk.Tk):
         self._autopilot_running=False;self.autopilot_btn.configure(text='☾  Run Autopilot now',state='normal');self.refresh_autopilot()
         if err:messagebox.showerror('Autopilot',str(err))
         elif report:self.side_status.configure(text='●  Autopilot report ready',fg=C.GOOD)
+    def run_daily(self):
+        from .daily import DailyTrainer
+        if getattr(self,'_autopilot_running',False):return
+        self._autopilot_running=True;self.autopilot_btn.configure(text='Daily training…',state='disabled');model=self.chat_model.get().strip();self.db.set_setting('autopilot_stop','0')
+        def work():
+            err=None;report=None
+            try:report=DailyTrainer(self.db,self.agent,log=lambda m:None).run(model)
+            except Exception as e:err=e
+            self.after(0,lambda:self._autopilot_done(report,err))
+        threading.Thread(target=work,daemon=True).start()
     def load_curriculum(self):
         from .curriculum import queue,tracks
         t=simpledialog.askstring('Training plan','Tracks to queue (all, or comma list):\n'+', '.join(tracks()),initialvalue='all',parent=self)

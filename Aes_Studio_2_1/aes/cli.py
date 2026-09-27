@@ -41,9 +41,11 @@ def main(argv=None):
     ap.add_argument('--max-level', choices=['primary', 'middle', 'high-school', 'university', 'specialist'], help='limit --curriculum to this level')
     ap.add_argument('--library', metavar='FOLDER', help='import every PDF/DOCX/text file in a folder into knowledge')
     ap.add_argument('--video', metavar='URL_OR_FILE', help='queue a learn-from-video goal')
+    ap.add_argument('--daily', action='store_true', help='run the daily training cycle (school, drills, exam, brain growth, report)')
+    ap.add_argument('--no-school', action='store_true', help='with --daily: skip curriculum/Autopilot, only drills + exam')
     a = ap.parse_args(argv)
 
-    db, runtimes, tools, agent = build_core(interactive=not a.autopilot and not a.api)
+    db, runtimes, tools, agent = build_core(interactive=not a.autopilot and not a.api and not a.daily)
     model = a.model or db.setting('default_model', 'Aes 2.1 Local')
     if not db.model(model):
         print(f'Model profile not found: {model}. Profiles: ' + ', '.join(r['name'] for r in db.models())); return 2
@@ -70,6 +72,11 @@ def main(argv=None):
         db.set_setting('autopilot_stop', '0')
         report = Autopilot(db, agent).run_all(model)
         if report: print(f'Report: {report}')
+    if a.daily:
+        from .daily import DailyTrainer
+        db.set_setting('autopilot_stop', '0')
+        print(f"Daily training with brain '{model}', permission mode '{db.setting('permission_mode','ask')}'.")
+        DailyTrainer(db, agent).run(model, school=not a.no_school)
     if a.api:
         from .hub import AesHub
         hub = AesHub(db, runtimes, agent)

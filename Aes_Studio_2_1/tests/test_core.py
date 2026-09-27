@@ -171,6 +171,36 @@ class AesCoreTests(unittest.TestCase):
         self.assertTrue(any('Study:' in t for t in titles) and any('Practice:' in t for t in titles))
         self.db.execute("DELETE FROM goals WHERE title LIKE '[roblox-%'")
 
+    def test_drill_grading(self):
+        from aes.drills import math_matches, run_kata, KATAS
+        self.assertTrue(math_matches('work\nAnswer: (x=3, y=-2)', '3,-2'))
+        self.assertTrue(math_matches('Answer: 0.5', '1/2'))
+        self.assertFalse(math_matches('Answer: 7', '8'))
+        good = 'def gcd(a, b):\n    while b: a, b = b, a % b\n    return a'
+        self.assertTrue(run_kata(good, 'gcd', KATAS[3][2]))
+        self.assertFalse(run_kata('def gcd(a, b): return 1', 'gcd', KATAS[3][2]))
+
+    def test_queue_next_progresses_evenly(self):
+        from aes.curriculum import queue_next
+        self.assertEqual(queue_next(self.db, 3), 6)
+        first = [g['title'] for g in self.db.goals('queued') if 'Study:' in g['title']]
+        self.assertEqual(len(first), 3)
+        self.assertEqual(len({t.split('-')[0] for t in first}), 3)   # three different tracks
+        queue_next(self.db, 3)
+        self.assertEqual(len({g['title'] for g in self.db.goals('queued') if g['title'].startswith('[')}), 12)  # no repeats
+        self.db.execute("DELETE FROM goals WHERE title LIKE '[%'")
+
+    def test_daily_cycle_report(self):
+        from aes.daily import DailyTrainer
+        self.db.set_setting('daily_math_drills', '4'); self.db.set_setting('daily_code_drills', '2')
+        before = len(self.db.training_examples())
+        report = DailyTrainer(self.db, self.agent, log=lambda m: None).run('Fake', school=False)
+        text = Path(report).read_text(encoding='utf-8')
+        self.assertIn('Maths/science drills: 0/4', text)   # the fake model answers wrong ...
+        self.assertIn('LoRA training is off', text)
+        self.assertGreaterEqual(len(self.db.training_examples()) - before, 4)  # ... so it gets correction examples
+        self.assertEqual(len(json.loads(self.db.setting('daily_history'))), 1)
+
     def test_html_to_text(self):
         self.assertEqual(html_to_text('<html><script>x()</script><p>Hi &amp; bye</p></html>'), 'Hi & bye')
 

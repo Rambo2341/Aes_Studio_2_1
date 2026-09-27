@@ -43,3 +43,28 @@ def queue(db, track=None, max_level=None, path=None, practice=True):
                                   f"Definition of Done: {u['done']}\n"
                                   "Work inside the workspace folder Aes_Practice. When finished, remember one lesson learned.", 'task'); added += 1
     return added
+
+
+def queue_next(db, k=3, path=None):
+    """Advance the school year: queue the next k units nobody has started yet,
+    lowest level first and alternating tracks, so Aes grows evenly in every field."""
+    units = load(path)['units']
+    started = {g['title'].split(']')[0] + ']' for g in db.goals() if g['title'].startswith('[')}
+    todo = [u for u in units if f"[{u['id']}]" not in started]
+    todo.sort(key=lambda u: (LEVELS.index(u['level']), [x['track'] for x in units].index(u['track'])))
+    picked = []; seen_tracks = set()
+    for u in todo:                        # first pass: one per track at the lowest level
+        if len(picked) >= k: break
+        if u['track'] not in seen_tracks and LEVELS.index(u['level']) == LEVELS.index(todo[0]['level']):
+            picked.append(u); seen_tracks.add(u['track'])
+    for u in todo:                        # fill the rest in order
+        if len(picked) >= k: break
+        if u not in picked: picked.append(u)
+    added = 0
+    for u in picked:
+        db.add_goal(f"[{u['id']}] Study: {u['topic']}", 'Sources: ' + ' '.join(u.get('sources', [])), 'learn')
+        db.add_goal(f"[{u['id']}] Practice: {u['practice']}",
+                    f"Level: {u['level']}. First use recall for the '{u['topic']}' study notes.\nDefinition of Done: {u['done']}\n"
+                    "Work inside the workspace folder Aes_Practice. When finished, remember one lesson learned.", 'task')
+        added += 2
+    return added

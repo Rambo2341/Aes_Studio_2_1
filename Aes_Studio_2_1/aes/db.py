@@ -131,6 +131,8 @@ class Database:
                 'auto_title':'1', 'startup_page':'chat', 'release_channel':'stable',
                 'workspace_root':'', 'hub_port':'8765', 'hub_token':secrets.token_urlsafe(32),
                 'hub_agent_enabled':'0', 'agent_max_steps':'30', 'autopilot_rounds':'6', 'ui_language':'auto',
+                'daily_units':'3', 'daily_max_goals':'12', 'daily_math_drills':'20', 'daily_code_drills':'6',
+                'daily_lora_enabled':'0', 'daily_lora_base':'', 'daily_lora_min_examples':'300', 'daily_history':'[]',
                 'auto_evolve':'1', 'auto_evolve_min_feedback':'8', 'theme':'midnight', 'permission_mode':'ask',
                 'blender_path':'', 'unity_path':'', 'rojo_path':'rojo', 'comfyui_url':'http://127.0.0.1:8188'
             }
