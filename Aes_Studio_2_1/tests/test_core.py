@@ -141,6 +141,36 @@ class AesCoreTests(unittest.TestCase):
         system, msgs = rt._convert([{'role': 'system', 'content': 'S'}, {'role': 'user', 'content': f'[[aes-image:{img}]] what?'}])
         self.assertEqual(system, 'S'); self.assertEqual(msgs[0]['content'][0]['type'], 'image')
 
+    def test_read_document_and_library(self):
+        lib = Path(_TMP) / 'magazines'; lib.mkdir(exist_ok=True)
+        (lib / 'issue1.md').write_text('Quaternions avoid gimbal lock in 3D rotation.', encoding='utf-8')
+        (lib / 'issue2.txt').write_text('Luau generics use angle brackets.', encoding='utf-8')
+        out = self.tools.call('read_document', {'path': str(lib / 'issue1.md'), 'max_chars': 10})
+        self.assertIn('Quaternion', out); self.assertIn('start_char=10', out)
+        self.assertIn('Imported 2', self.tools.call('library_import', {'folder': str(lib)}))
+        self.assertIn('Imported 0', self.tools.call('library_import', {'folder': str(lib)}))  # no duplicates
+        self.assertIn('gimbal', self.tools.call('recall', {'query': 'quaternions gimbal'}))
+
+    def test_video_helpers_and_learning(self):
+        from aes.tools import youtube_id, vtt_to_text
+        self.assertEqual(youtube_id('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1'), 'dQw4w9WgXcQ')
+        self.assertEqual(youtube_id('https://youtu.be/dQw4w9WgXcQ'), 'dQw4w9WgXcQ')
+        vtt = 'WEBVTT\n\n00:00.000 --> 00:01.000\nhello <c>world</c>\n\n00:01.000 --> 00:02.000\nhello world\nnext line'
+        self.assertEqual(vtt_to_text(vtt), 'hello world next line')
+        self.tools._video_transcript = lambda src, max_chars=60000: 'recursion means a function calls itself'
+        out = self.agent.learn_from_video('Fake', 'https://youtu.be/dQw4w9WgXcQ', 'recursion')
+        self.assertIn('Learned from video', out)
+
+    def test_curriculum_queue(self):
+        from aes.curriculum import queue, load
+        self.assertGreater(len(load()['units']), 30)
+        n = queue(self.db, 'roblox', 'high-school')
+        self.assertGreater(n, 0)
+        self.assertEqual(queue(self.db, 'roblox', 'high-school'), 0)  # idempotent
+        titles = [g['title'] for g in self.db.goals('queued')]
+        self.assertTrue(any('Study:' in t for t in titles) and any('Practice:' in t for t in titles))
+        self.db.execute("DELETE FROM goals WHERE title LIKE '[roblox-%'")
+
     def test_html_to_text(self):
         self.assertEqual(html_to_text('<html><script>x()</script><p>Hi &amp; bye</p></html>'), 'Hi & bye')
 

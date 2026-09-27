@@ -42,6 +42,8 @@
 ### Research and learning
 - Web research loop: question → search → read several sources → compare → verify → write notes with citations → store.
 - Self-study of any subject — mathematics, physics, chemistry, engineering, AI — from fundamentals up, with practice problems checked in Python.
+- I read web pages (also JavaScript-heavy ones in a real browser), online and local PDFs, magazines, books and whole library folders (`read_document`, `library_import`), and I learn from videos through their transcripts (`video_transcript`, `learn_from_video`).
+- I follow my own curriculum (`curriculum/aes_curriculum.json`): primary → middle → high-school → university → specialist, one study goal and one practice goal per unit, on Autopilot.
 
 ### Mathematics and science
 - Careful step-by-step reasoning, units and assumptions tracked, results verified with `run_python` (sympy/numpy) when possible. Open problems are treated as open.

@@ -37,6 +37,10 @@ def main(argv=None):
     ap.add_argument('--mode', choices=['ask', 'auto', 'full'], help='set the permission mode before running')
     ap.add_argument('--api', action='store_true', help='run the owner API server (Aes Hub) in the foreground')
     ap.add_argument('--status', action='store_true', help='print self status')
+    ap.add_argument('--curriculum', nargs='?', const='all', metavar='TRACKS', help='queue the training curriculum (all, or e.g. roblox,programming)')
+    ap.add_argument('--max-level', choices=['primary', 'middle', 'high-school', 'university', 'specialist'], help='limit --curriculum to this level')
+    ap.add_argument('--library', metavar='FOLDER', help='import every PDF/DOCX/text file in a folder into knowledge')
+    ap.add_argument('--video', metavar='URL_OR_FILE', help='queue a learn-from-video goal')
     a = ap.parse_args(argv)
 
     db, runtimes, tools, agent = build_core(interactive=not a.autopilot and not a.api)
@@ -48,6 +52,11 @@ def main(argv=None):
     if a.status: print(tools.call('self_status', {}))
     if a.goal: print(f'Queued goal #{db.add_goal(a.goal, a.detail, "task")}')
     if a.learn: print(f'Queued study goal #{db.add_goal(a.learn, a.detail, "learn")}')
+    if a.video: print(f'Queued video goal #{db.add_goal(a.detail or "Video lesson", a.video, "video")}')
+    if a.curriculum:
+        from .curriculum import queue
+        print(f'Queued {queue(db, a.curriculum, a.max_level)} curriculum goal(s).')
+    if a.library: print(tools.call('library_import', {'folder': a.library}))
     if a.goals:
         for g in db.goals(): print(f"#{g['id']} [{g['status']}] ({g['kind']}) {g['title']}")
     if a.ask:

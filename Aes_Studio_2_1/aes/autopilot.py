@@ -7,7 +7,7 @@ Each goal gets its own conversation. A morning report is written to <data>/repor
 
 Emergency stop: create a file named STOP in the Aes data folder, or press Ctrl+C.
 """
-import time
+import re, time
 from pathlib import Path
 from .paths import DATA, REPORTS
 
@@ -28,8 +28,12 @@ class Autopilot:
     def run_goal(self, goal, model_name):
         gid = goal['id']
         self.db.update_goal(gid, status='running')
-        if goal['kind'] == 'learn':
-            result = self.agent.learn(model_name, goal['title'] + (' ' + goal['detail'] if goal['detail'] else ''), 2)
+        if goal['kind'] in ('learn', 'video'):
+            urls = re.findall(r'https?://\S+', goal['detail'] or '')
+            if goal['kind'] == 'video':
+                result = self.agent.learn_from_video(model_name, urls[0] if urls else ((goal['detail'] or '').strip() or goal['title']), goal['title'])
+            else:
+                result = self.agent.learn(model_name, goal['title'], 2, extra_urls=urls)
             status = 'failed' if result.startswith('ERROR') or result.startswith('Could not') else 'done'
             self.db.update_goal(gid, status=status, result=result[:20000])
             return status, result

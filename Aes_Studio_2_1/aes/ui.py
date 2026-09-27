@@ -511,8 +511,8 @@ class AesStudio(tk.Tk):
         self.goal_title=tk.StringVar();self.goal_kind=tk.StringVar(value='task')
         self.label_field(inn,'GOAL',self.entry(inn,self.goal_title))
         tk.Label(inn,text='DEFINITION OF DONE / DETAIL',bg=C.CARD,fg=C.MUTED,font=('Segoe UI',8)).pack(anchor='w');self.goal_detail=self.text(inn,7);self.goal_detail.pack(fill='both',expand=True)
-        row=tk.Frame(inn,bg=C.CARD);row.pack(fill='x',pady=8);ttk.Combobox(row,textvariable=self.goal_kind,state='readonly',values=['task','learn'],width=8).pack(side='left');self.button(row,'Queue goal',self.queue_goal,accent=True).pack(side='left',padx=7);self.button(row,'Delete',self.delete_goal,danger=True).pack(side='right')
-        act=tk.Frame(inn,bg=C.CARD);act.pack(fill='x',pady=4);self.autopilot_btn=self.button(act,'☾  Run Autopilot now',self.run_autopilot,accent=True);self.autopilot_btn.pack(side='left');self.button(act,'Stop',self.stop_autopilot,danger=True).pack(side='left',padx=7);self.button(act,'Reports',lambda:self.open_folder(DATA/'reports')).pack(side='right')
+        row=tk.Frame(inn,bg=C.CARD);row.pack(fill='x',pady=8);ttk.Combobox(row,textvariable=self.goal_kind,state='readonly',values=['task','learn','video'],width=8).pack(side='left');self.button(row,'Queue goal',self.queue_goal,accent=True).pack(side='left',padx=7);self.button(row,'Delete',self.delete_goal,danger=True).pack(side='right')
+        act=tk.Frame(inn,bg=C.CARD);act.pack(fill='x',pady=4);self.autopilot_btn=self.button(act,'☾  Run Autopilot now',self.run_autopilot,accent=True);self.autopilot_btn.pack(side='left');self.button(act,'Stop',self.stop_autopilot,danger=True).pack(side='left',padx=7);self.button(act,'Reports',lambda:self.open_folder(DATA/'reports')).pack(side='right');self.button(act,'Load training plan',self.load_curriculum).pack(side='right',padx=7)
         self.goal_view=self.text(inn,8);self.goal_view.pack(fill='both',expand=True,pady=(8,0));self._goals=[]
     def refresh_autopilot(self):
         if not hasattr(self,'goal_list'):return
@@ -546,6 +546,10 @@ class AesStudio(tk.Tk):
         self._autopilot_running=False;self.autopilot_btn.configure(text='☾  Run Autopilot now',state='normal');self.refresh_autopilot()
         if err:messagebox.showerror('Autopilot',str(err))
         elif report:self.side_status.configure(text='●  Autopilot report ready',fg=C.GOOD)
+    def load_curriculum(self):
+        from .curriculum import queue,tracks
+        t=simpledialog.askstring('Training plan','Tracks to queue (all, or comma list):\n'+', '.join(tracks()),initialvalue='all',parent=self)
+        if t:n=queue(self.db,t.strip());self.refresh_autopilot();messagebox.showinfo('Training plan',f'Queued {n} goal(s).',parent=self)
     def stop_autopilot(self):self.db.set_setting('autopilot_stop','1');self.side_status.configure(text='●  Autopilot stopping after current step',fg=C.WARN)
 
     def ask_tool_permission(self,req):

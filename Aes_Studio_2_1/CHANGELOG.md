@@ -2,6 +2,10 @@
 
 ## Aes Studio 2.2.0 — Brain & Autopilot
 
+- **Learning from everything:** `read_document` (local PDFs/magazines/books page by page), `library_import` (whole folders), `fetch_url` reads online PDFs and `render=true` uses a real browser (Playwright), `video_transcript` / `learn_from_video` (YouTube subtitles, yt-dlp, faster-whisper for local files).
+- **Training curriculum:** `curriculum/aes_curriculum.json` (41 units, primary → specialist); `--curriculum`, **Load training plan** button; video goals (`--video`).
+- `docs/TRAINING_PLAN.md`: nightly study → data collection → LoRA Aes 3.0 → evals.
+
 - **Real brains:** new `openai_compat` runtime (Ollama, LM Studio, llama.cpp server, vLLM, DeepSeek, OpenRouter, …) and `anthropic` runtime (Claude via the official SDK, adaptive thinking, streaming). Seeded profiles: `Aes 2.2 Claude`, `Aes 2.2 Ollama`, `Aes 2.2 LM Studio`, `Aes 2.2 DeepSeek`. API keys can be stored as `env:VARIABLE`.
 - **Vision + full computer control:** `look_at_screen` (screenshot the model can actually see), `mouse_move/drag/scroll`, double-click, `key_press` hotkeys, Arabic-safe typing through the clipboard, `clipboard_get/set`, `open_url` (Chrome), `screen_info`. pyautogui fail-safe enabled.
 - **Autopilot:** goal queue + strict reviewer rounds + morning report in `<data>/reports/`. GUI page, `run_autopilot.bat`, `--autopilot`, remote `/v1/goals`. Emergency stop via Stop button or a `STOP` file.

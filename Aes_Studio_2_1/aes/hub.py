@@ -62,7 +62,7 @@ class AesHub:
         @self.app.post('/v1/goals')
         def add_goal(body:GoalBody,authorization:str|None=Header(default=None)):
             self._auth(authorization)
-            gid=self.db.add_goal(body.title,body.detail,body.kind if body.kind in ('task','learn') else 'task')
+            gid=self.db.add_goal(body.title,body.detail,body.kind if body.kind in ('task','learn','video') else 'task')
             return {'id':gid,'status':'queued'}
         @self.app.get('/v1/goals')
         def list_goals(authorization:str|None=Header(default=None)):

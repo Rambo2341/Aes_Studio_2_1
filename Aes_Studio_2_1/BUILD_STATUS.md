@@ -1,6 +1,6 @@
 # Aes Studio 2.2 Build Status
 
-Validated headlessly on Linux / Python 3.11 (`tests/test_core.py`, 12 tests, all passing):
+Validated headlessly on Linux / Python 3.11 (`tests/test_core.py`, 15 tests, all passing):
 
 - Agent tool loop against an OpenAI-compatible server (real HTTP) — PASS
 - Step-budget status report (no raw tool call as final answer) — PASS

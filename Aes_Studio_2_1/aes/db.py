@@ -175,7 +175,8 @@ class Database:
                 'unity_batch':'ask','roblox_build':'ask','remember':'ask','task_create':'ask','task_update':'ask','task_list':'allow','delegate_agent':'allow',
                 'look_at_screen':'ask','mouse_move':'ask','mouse_drag':'ask','mouse_scroll':'ask','key_press':'ask','screen_info':'allow',
                 'open_url':'ask','clipboard_get':'ask','clipboard_set':'ask','run_python':'ask','learn_topic':'ask','recall':'allow',
-                'goal_add':'ask','knowledge_add':'ask','self_status':'allow'
+                'goal_add':'ask','knowledge_add':'ask','self_status':'allow',
+                'read_document':'ask','library_import':'ask','video_transcript':'ask','learn_from_video':'ask'
             }
             for name,mode in policies.items():
                 self.conn.execute("INSERT OR IGNORE INTO tool_policies(tool_name,mode,updated_at) VALUES(?,?,?)",(name,mode,now))
